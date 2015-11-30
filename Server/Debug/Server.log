@@ -1,15 +1,16 @@
-﻿Build started 30.11.2015 17:50:12.
-     1>Project "C:\Users\Екатерина\OneDrive\Documents\УЧЁБА\3курс\OS Wind\семестровая\Server\Server.vcxproj" on node 3 (Rebuild target(s)).
+﻿Build started 30.11.2015 21:08:50.
+     1>Project "D:\github\chat\Server\Server.vcxproj" on node 3 (Rebuild target(s)).
      1>ClCompile:
          D:\VisualSt\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"Debug\Server.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt stdafx.cpp
          stdafx.cpp
          D:\VisualSt\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\Server.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Server.cpp
          Server.cpp
-     1>c:\users\екатерина\onedrive\documents\учёба\3курс\os wind\семестровая\server\server.cpp(21): error C3531: 'fullName': a symbol whose type contains 'auto' must have an initializer
-     1>c:\users\екатерина\onedrive\documents\учёба\3курс\os wind\семестровая\server\server.cpp(22): error C2440: '=' : cannot convert from 'std::basic_string<char,std::char_traits<char>,std::allocator<char>>' to 'int'
-                 No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
-     1>Done Building Project "C:\Users\Екатерина\OneDrive\Documents\УЧЁБА\3курс\OS Wind\семестровая\Server\Server.vcxproj" (Rebuild target(s)) -- FAILED.
+       Link:
+         D:\VisualSt\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\github\chat\Debug\Server.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\github\chat\Debug\Server.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\github\chat\Debug\Server.lib" /MACHINE:X86 Debug\Server.obj
+         Debug\stdafx.obj
+         Server.vcxproj -> D:\github\chat\Debug\Server.exe
+     1>Done Building Project "D:\github\chat\Server\Server.vcxproj" (Rebuild target(s)).
 
-Build FAILED.
+Build succeeded.
 
-Time Elapsed 00:00:06.04
+Time Elapsed 00:00:06.51
