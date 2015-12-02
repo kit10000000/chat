@@ -1,0 +1,9 @@
+﻿Build started 02.12.15 17:04:27.
+     1>Project "\\psf\Home\Desktop\programming\c++\ChatPipe\Server\Server.vcxproj" on node 3 (Build target(s)).
+     1>Link:
+         Server.vcxproj -> \\psf\Home\Desktop\programming\c++\ChatPipe\Debug\Server.exe
+     1>Done Building Project "\\psf\Home\Desktop\programming\c++\ChatPipe\Server\Server.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.17
