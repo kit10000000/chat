@@ -4,10 +4,8 @@
 
 #include "stdafx.h"
 #include "2.h"
-#include <Richedit.h>
 #include <cstring>
 #include <windows.h> 
-#include <stdio.h>
 #pragma warning(disable : 4996)
 #define MAX_LOADSTRING 100
 #define ID_STR_LINE_USER 1
@@ -29,9 +27,8 @@ HWND hwndGetText;						// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 HANDLE hMutex;
-CHAR myMutex[] =
-"MutexName";
-
+CHAR myMutex[] ="MutexName";
+HANDLE g_hEvent;
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
@@ -64,16 +61,9 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_MY2));
 
 	// Main message loop:
-	while (GetMessage(&msg, NULL, 0, 0))
+	while (GetMessage(&msg, NULL, 0, 0)) //клиент считывает (!)
 	{
-		
-		bSuccess = ReadFile(
-			g_hPipeChat,
-			fullMesage,
-			sizeof fullMesage,
-			&dwBytesRead,
-			NULL);
-		
+		bSuccess = ReadFile(g_hPipeChat,fullMesage,sizeof (fullMesage),&dwBytesRead,NULL);
 		if ((TRUE == bSuccess) || (NULL != dwBytesRead))
 		{
 			SetWindowText(hwndGetText, fullMesage);
@@ -145,9 +135,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	   10, 45, 260, 25, hWnd, (HMENU)ID_STR_LINE_USER, hInstance, NULL);//имя юзера
    CreateWindow("BUTTON", "Send", WS_CHILD | WS_VISIBLE,
 	   280, 80, 80, 25, hWnd, (HMENU)ID_BTN_SEND, hInstance, NULL);//отправка сообщения
-
-
-
    if (!hWnd)
    {
       return FALSE;
@@ -156,14 +143,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    do
    {
 	   hMutex = OpenMutex(SYNCHRONIZE, FALSE, myMutex);
+	   g_hEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, "NamedEvent");
 	   MSTK = GetLastError();
    } while (hMutex == NULL);
-   
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
    return TRUE;
 }
-
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -207,7 +193,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				GetDlgItemText(hWnd, ID_STR_LINE_PIPENAME, PipeName, 255);
 				// здесь если ставлю GENERIC_READ | GENERIC_WRITE прога начинает тупить хз
-				
 				g_hPipeSystem = CreateFile(PipeName, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);//канал для записи
 				if (g_hPipeSystem != INVALID_HANDLE_VALUE) // условие, если канал создан, то отображает дисконнект на кнопке
 				{
@@ -215,23 +200,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					connected = TRUE;
 				}
 				GetDlgItemText(hWnd, ID_STR_LINE_USER, UserName, 255);
-				
 				WriteFile(g_hPipeSystem, UserName, strlen(UserName) + 1, &cbWritten, NULL);
-				
 				strcpy(PipeNameChat, PipeName);
 				strcat(PipeNameChat, UserName);
 				//Sleep(100);//чтобы там успелось создаться все(на сервере)
 				//ЗДЕСЬ МОЖЕТ ЗАСТОПОРИТЬСЯ ИЗ-ЗА GENERIC_READ | GENERIC_WRITE
 				// НО ЕСЛИ ЧТО-ТО ОДНО, ТО РАБОТАЕТ ПОЧЕМУ-ТО
-				g_hPipeChat = CreateFile(PipeNameChat, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+				g_hPipeChat = CreateFile(PipeNameChat, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)
 				break;
 			}
-			
-			
 		case ID_BTN_SEND:
-			//WaitForSingleObject(hMutex, INFINITE);
+			WaitForSingleObject(hMutex, INFINITE);
 			GetDlgItemText(hWnd, ID_RICHEDITMESSEND, chatMessage, 255);
 			WriteFile(g_hPipeChat, chatMessage, strlen(chatMessage) + 1, &cbWritten, NULL);
+			SetEvent(g_hEvent);
 			ReleaseMutex(hMutex);
 			mst = GetLastError();
 			break;
