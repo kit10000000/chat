@@ -90,6 +90,7 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 			strcpy(NamePipeClient, lpszPipename);
 			strcat(NamePipeClient, UserName);
 			hPipeClient = CreateNamedPipe(NamePipeClient,PIPE_ACCESS_DUPLEX,PIPE_TYPE_MESSAGE |PIPE_READMODE_MESSAGE |PIPE_WAIT,PIPE_UNLIMITED_INSTANCES,MAX_BUFFER_SIZE,MAX_BUFFER_SIZE,0,NULL);
+			
 		}	
 	}
 	while (true)

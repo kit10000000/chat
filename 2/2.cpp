@@ -206,7 +206,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				//Sleep(100);//чтобы там успелось создаться все(на сервере)
 				//ЗДЕСЬ МОЖЕТ ЗАСТОПОРИТЬСЯ ИЗ-ЗА GENERIC_READ | GENERIC_WRITE
 				// НО ЕСЛИ ЧТО-ТО ОДНО, ТО РАБОТАЕТ ПОЧЕМУ-ТО
-				g_hPipeChat = CreateFile(PipeNameChat, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)
+				g_hPipeChat = CreateFile(PipeNameChat,  GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)
 				break;
 			}
 		case ID_BTN_SEND:
