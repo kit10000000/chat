@@ -29,6 +29,8 @@ TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 HANDLE hMutex;
 CHAR myMutex[] ="MutexName";
 HANDLE g_hEvent;
+char PipeName[100]; //переменная для создания канала, считывает из поля имя канала
+char PipeNameChat[100];
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
@@ -63,7 +65,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	// Main message loop:
 	while (GetMessage(&msg, NULL, 0, 0)) //клиент считывает (!)
 	{
-		bSuccess = ReadFile(g_hPipeChat,fullMesage,sizeof (fullMesage),&dwBytesRead,NULL);
+		bSuccess = ReadFile(g_hPipeChat,fullMesage,sizeof (fullMesage),&dwBytesRead,NULL);//херово
 		if ((TRUE == bSuccess) || (NULL != dwBytesRead))
 		{
 			SetWindowText(hwndGetText, fullMesage);
@@ -165,8 +167,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
 	HDC hdc;
-	char PipeName[100]; //переменная для создания канала, считывает из поля имя канала
-	char PipeNameChat[100];
 	char UserName[50] = "";
 	char chatMessage[200] = "";
 	char fullMesage[255] = "";
@@ -205,17 +205,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				strcat(PipeNameChat, UserName);
 				//Sleep(100);//чтобы там успелось создаться все(на сервере)
 				//ЗДЕСЬ МОЖЕТ ЗАСТОПОРИТЬСЯ ИЗ-ЗА GENERIC_READ | GENERIC_WRITE
-				// НО ЕСЛИ ЧТО-ТО ОДНО, ТО РАБОТАЕТ ПОЧЕМУ-ТО
-				g_hPipeChat = CreateFile(PipeNameChat,  GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)
+				// НО ЕСЛИ ЧТО-ТО ОДНО, ТО РАБОТАЕТ ПОЧЕМУ-ТО				
+				mst = GetLastError();
 				break;
 			}
 		case ID_BTN_SEND:
+			g_hPipeChat = CreateFile(PipeNameChat, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)
 			WaitForSingleObject(hMutex, INFINITE);
 			GetDlgItemText(hWnd, ID_RICHEDITMESSEND, chatMessage, 255);
 			WriteFile(g_hPipeChat, chatMessage, strlen(chatMessage) + 1, &cbWritten, NULL);
 			SetEvent(g_hEvent);
 			ReleaseMutex(hMutex);
-			mst = GetLastError();
 			break;
 		case IDM_EXIT:
 			DestroyWindow(hWnd);

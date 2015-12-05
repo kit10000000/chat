@@ -8,6 +8,7 @@ LPTSTR lpszPipename = TEXT("\\\\.\\pipe\\MyPipe");
 HANDLE hMutex;
 CHAR myMutex[] ="MutexName";
 HANDLE hEvent;
+HANDLE hPipeClient;
 int _tmain(VOID)
 {
 	const int MAX_BUFFER_SIZE = 512;
@@ -76,10 +77,11 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 	DWORD dwBytesRead = 0;
 	TCHAR szBuffer[MAX_BUFFER_SIZE] = { 0 };
 	HANDLE hPipe = (HANDLE)lpvParam;
-	HANDLE hPipeClient;
+	
 	char UserName[50] = "";
 	char fullMesage[255] = "";
 	char NamePipeClient[100];
+	DWORD mist;
 	_tprintf(TEXT("[ThreadProc] Created, receiving and processing messages.\n"));
 	//пробуем читать, пока не получится
 	while (bSuccess != TRUE)
@@ -89,7 +91,9 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 			_tprintf(TEXT("bla\n"));
 			strcpy(NamePipeClient, lpszPipename);
 			strcat(NamePipeClient, UserName);
-			hPipeClient = CreateNamedPipe(NamePipeClient,PIPE_ACCESS_DUPLEX,PIPE_TYPE_MESSAGE |PIPE_READMODE_MESSAGE |PIPE_WAIT,PIPE_UNLIMITED_INSTANCES,MAX_BUFFER_SIZE,MAX_BUFFER_SIZE,0,NULL);
+			hPipeClient = CreateNamedPipe(NamePipeClient,PIPE_ACCESS_DUPLEX,PIPE_TYPE_MESSAGE |PIPE_READMODE_MESSAGE |PIPE_NOWAIT,PIPE_UNLIMITED_INSTANCES,MAX_BUFFER_SIZE,MAX_BUFFER_SIZE,0,NULL);
+			
+			mist = GetLastError();
 			
 		}	
 	}
