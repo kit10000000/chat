@@ -116,6 +116,7 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 	//пробуем читать, пока не получится
 	while (bSuccess != TRUE)
 	{	 
+
 		if (bSuccess = ReadFile(
 			hPipe,
 			UserName,
@@ -142,7 +143,8 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 	
 	while (true)
 	{
-
+		//если что, сюда можно запилить такой же while, как и в случае выше, внутри while (true)
+		//сделать еще один while на удачное чтение
 		dwRetCode = WaitForSingleObject(hMutex, INFINITE);
 		// Read client requests from the pipe.
 		bSuccess = ReadFile(
