@@ -1,27 +1,71 @@
 #include "stdafx.h"
-#include <windows.h> 
+#include <vector>
+#include <windows.h>
 #include <stdio.h> 
 #include <tchar.h>
+#include <string>
+#include <list>
+#define	I_MUST_READ_MY_PIPE 11101
+#define MAX_BUFFER_SIZE 512
 #pragma warning(disable : 4996)
+using namespace std;
 DWORD WINAPI ThreadProc(LPVOID);
+vector<DWORD> ThreadsId;//список всех id потоков - клиентов
+vector<LPSTR> ListOfUserNames;
 LPTSTR lpszPipename = TEXT("\\\\.\\pipe\\MyPipe");
 HANDLE hMutex;
 CHAR myMutex[] ="MutexName";
 HANDLE hEvent;
 HANDLE hPipeClient;
+char fullMesage[255] = "";
+
+
 int _tmain(VOID)
 {
-	const int MAX_BUFFER_SIZE = 512;
 	HANDLE hPipe = INVALID_HANDLE_VALUE;
 	HANDLE hThread = NULL;
 	BOOL bConnected = FALSE;
 	DWORD dwThreadId = NULL;
+	MSG msg;
+	DWORD dwBytesRead;
+	BOOL bSuccess;
+	vector<DWORD>::iterator it;
+	COPYDATASTRUCT cd;
 	while (true)
 	{
+		//вот здесь встает и дальше не идет
+		//возможно это из-за неверного указания HWND
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			for (it = ThreadsId.begin(); it != ThreadsId.end(); it++)
+			if ((DWORD)msg.message == *it){
+				//сначала пишем во все пайпы все сообщения 
+				vector <int>::size_type size = ListOfUserNames.size();
+				for (int i = 0; i < size; i++)
+				{
+					//(!!!)
+					LPSTR NamePipeClient = new CHAR[255];
+					NamePipeClient = lpszPipename;
+					lstrcat(NamePipeClient, ListOfUserNames[i]);
+					HANDLE hPipeSystem = CreateFile((LPCSTR)NamePipeClient, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
+					bSuccess = WriteFile(hPipeSystem, (LPCVOID)fullMesage, sizeof(DWORD)+1, &dwBytesRead, NULL);
+					DeleteFile(NamePipeClient);
+					CloseHandle(hPipeSystem);
+				}
+
+				//потом отсылаем сообщения
+				for (it = ThreadsId.begin(); it != ThreadsId.end(); it++)//отсылаем всем клиентам сообщения о том, что надо читать пайпы
+				{
+					PostThreadMessage((DWORD)&it, I_MUST_READ_MY_PIPE, 0, (LPARAM)&cd);
+				}
+			}
+			
+		}
 		//Create Named Pipe, if pipe not created, error and exit
 		hMutex = CreateMutex(NULL, FALSE, myMutex);
 		hEvent = CreateEvent(NULL, FALSE, FALSE, "NamedEvent");
-		hPipe = CreateNamedPipe(lpszPipename,PIPE_ACCESS_DUPLEX,PIPE_TYPE_MESSAGE |PIPE_READMODE_MESSAGE |PIPE_WAIT,PIPE_UNLIMITED_INSTANCES,MAX_BUFFER_SIZE,MAX_BUFFER_SIZE,0,
+		//|PIPE_WAIT стояло во втором параметре, я убрал проверить
+		hPipe = CreateNamedPipe(lpszPipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, PIPE_UNLIMITED_INSTANCES | PIPE_NOWAIT, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE, 0,
 			NULL);
 		if (INVALID_HANDLE_VALUE == hPipe)
 		{
@@ -38,11 +82,17 @@ int _tmain(VOID)
 		}
 		_tprintf(TEXT("[SERVER] Waiting for client connection...\n"));
 		bConnected = ConnectNamedPipe(hPipe, NULL);
+		DWORD MST = GetLastError();
 		if (bConnected == TRUE)
 		{
+			DWORD ThreadMainId = GetCurrentThreadId();
+			//посылаем id потока этого, чтобы потом могли обмениваться сообщениями с клиентом, а то клиент не будет знать, куда отправлять сообщение
+			bSuccess = WriteFile(hPipe, (LPCVOID)ThreadMainId, sizeof(DWORD) + 1, &dwBytesRead, NULL);
+			MST = GetLastError();
 			_tprintf(TEXT("[SERVER] Client connected, creating a processing thread.\n"));
 			//Create a thread for this client.
 			hThread = CreateThread(NULL,0,ThreadProc,(LPVOID)hPipe,0,&dwThreadId);
+			
 			//Thread created?
 			if (NULL == hThread)
 			{
@@ -72,32 +122,30 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 		_tprintf(TEXT("[ThreadProc] Exitting.\n"));
 		return (DWORD)-1;
 	}
-	const int MAX_BUFFER_SIZE = 512;
 	BOOL bSuccess = FALSE;
 	DWORD dwBytesRead = 0;
 	TCHAR szBuffer[MAX_BUFFER_SIZE] = { 0 };
 	HANDLE hPipe = (HANDLE)lpvParam;
 	
 	char UserName[50] = "";
-	char fullMesage[255] = "";
+	
 	char NamePipeClient[100];
 	DWORD mist;
 	_tprintf(TEXT("[ThreadProc] Created, receiving and processing messages.\n"));
+	DWORD ThreadClientId;
+	ThreadClientId = GetCurrentThreadId();
+	ThreadsId.push_back(ThreadClientId);
+
 	//пробуем читать, пока не получится
+	//создаем здесь пайп для клиента
 	while (bSuccess != TRUE)
 	{	 
-<<<<<<< HEAD
-
-		if (bSuccess = ReadFile(
-			hPipe,
-			UserName,
-			sizeof UserName,
-			&dwBytesRead,
-			NULL))
-=======
-		if (bSuccess = ReadFile(hPipe,UserName,sizeof(UserName),&dwBytesRead,NULL))
->>>>>>> branch1
-		{
+		if (bSuccess = ReadFile(hPipe,UserName,sizeof(UserName),&dwBytesRead,NULL))//здесь возник дедлок, я жду, пока клиент пришлет мне юзернейм, и клиент тоже чего-то ждет
+		{ // короче в клиенте ждет, чтобы прочитать айди серверного потока, а тут ждет здесь
+			//почему-то клиент не читает из серверного пайпа айди потока
+			//(!!!)
+			LPSTR NameOfUser = UserName;
+			ListOfUserNames.push_back(NameOfUser);
 			_tprintf(TEXT("bla\n"));
 			strcpy(NamePipeClient, lpszPipename);
 			strcat(NamePipeClient, UserName);
@@ -109,14 +157,8 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 	}
 	while (true)
 	{
-<<<<<<< HEAD
-		//если что, сюда можно запилить такой же while, как и в случае выше, внутри while (true)
-		//сделать еще один while на удачное чтение
-		dwRetCode = WaitForSingleObject(hMutex, INFINITE);
-=======
 		WaitForSingleObject(hEvent, INFINITE);
 		WaitForSingleObject(hMutex, INFINITE);
->>>>>>> branch1
 		// Read client requests from the pipe.
 		bSuccess = ReadFile(hPipeClient,szBuffer,sizeof(szBuffer),&dwBytesRead,NULL);
 		//if request not correct

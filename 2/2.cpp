@@ -4,10 +4,8 @@
 
 #include "stdafx.h"
 #include "2.h"
-#include <Richedit.h>
 #include <cstring>
 #include <windows.h> 
-#include <stdio.h>
 #pragma warning(disable : 4996)
 #define MAX_LOADSTRING 100
 #define ID_STR_LINE_USER 1
@@ -17,10 +15,12 @@
 #define ID_RICHEDITMESSEND 5
 #define ID_RICHEDITMESGET 6
 #define ID_BTN_SEND 7
+#define	I_MUST_READ_MY_PIPE 11101
 
 using namespace std;
 // Global Variables:
 char PipeNameSystem [] = "\\\\.\\pipe\\MyPipe";
+DWORD ThreadServerId;
 DWORD cbWritten;
 HANDLE g_hPipeChat;
 HANDLE g_hPipeSystem;
@@ -29,9 +29,10 @@ HWND hwndGetText;						// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 HANDLE hMutex;
-CHAR myMutex[] =
-"MutexName";
-
+CHAR myMutex[] ="MutexName";
+HANDLE g_hEvent;
+char PipeName[100]; //переменная для создания канала, считывает из поля имя канала
+char PipeNameChat[100];
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
@@ -63,21 +64,20 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_MY2));
 
+
 	// Main message loop:
-	while (GetMessage(&msg, NULL, 0, 0))
+	while (GetMessage(&msg, NULL, 0, 0)) //клиент считывает (!)
 	{
-		
-		bSuccess = ReadFile(
-			g_hPipeChat,
-			fullMesage,
-			sizeof fullMesage,
-			&dwBytesRead,
-			NULL);
-		
-		if ((TRUE == bSuccess) || (NULL != dwBytesRead))
+	
+		if (msg.message == I_MUST_READ_MY_PIPE)
 		{
-			SetWindowText(hwndGetText, fullMesage);
+			bSuccess = ReadFile(g_hPipeChat, fullMesage, sizeof (fullMesage), &dwBytesRead, NULL);
+			if ((TRUE == bSuccess) || (NULL != dwBytesRead))
+			{
+				SetWindowText(hwndGetText, fullMesage);
+			}
 		}
+			
 		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
 		{
 			TranslateMessage(&msg);
@@ -145,25 +145,22 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	   10, 45, 260, 25, hWnd, (HMENU)ID_STR_LINE_USER, hInstance, NULL);//имя юзера
    CreateWindow("BUTTON", "Send", WS_CHILD | WS_VISIBLE,
 	   280, 80, 80, 25, hWnd, (HMENU)ID_BTN_SEND, hInstance, NULL);//отправка сообщения
-
-
-
    if (!hWnd)
    {
       return FALSE;
    }
 
+   //оно здесь не открывает, потому что на сервере не создает, просто напросто не доходит до создания мьютекса и ивента
    do
    {
 	   hMutex = OpenMutex(SYNCHRONIZE, FALSE, myMutex);
+	   g_hEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, "NamedEvent");
 	   MSTK = GetLastError();
    } while (hMutex == NULL);
-   
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
    return TRUE;
 }
-
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -176,11 +173,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	DWORD ThreadId;
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
+	DWORD dwBytesRead;
 	HDC hdc;
-	char PipeName[100]; //переменная для создания канала, считывает из поля имя канала
-	char PipeNameChat[100];
 	char UserName[50] = "";
 	char chatMessage[200] = "";
 	char fullMesage[255] = "";
@@ -192,7 +189,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_COMMAND:
 		wmId    = LOWORD(wParam);
 		wmEvent = HIWORD(wParam);
-		
+		COPYDATASTRUCT cd;
 		// Parse the menu selections:
 		switch (wmId)
 		{
@@ -205,35 +202,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			else 
 			{
-				GetDlgItemText(hWnd, ID_STR_LINE_PIPENAME, PipeName, 255);
+				BOOL bSuccess = FALSE;
+				char ThreadServerIdChar[50];
 				// здесь если ставлю GENERIC_READ | GENERIC_WRITE прога начинает тупить хз
+				g_hPipeSystem = CreateFile(PipeNameSystem, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
+				while (bSuccess != TRUE)
+				{
+					bSuccess = ReadFile(g_hPipeSystem, ThreadServerIdChar, sizeof(UserName), &dwBytesRead, NULL);//как только подключились к серверу, считываем айди его потока, чтобы мы могли ему отправить сообщение, что мы отправили сообщение в чат
 				
-				g_hPipeSystem = CreateFile(PipeName, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);//канал для записи
+				}
+				ThreadServerId = (DWORD)ThreadServerIdChar;
 				if (g_hPipeSystem != INVALID_HANDLE_VALUE) // условие, если канал создан, то отображает дисконнект на кнопке
 				{
-					SetWindowText((HWND)lParam, "Disconect");
+					SetWindowText((HWND)lParam, "Disconnect");
 					connected = TRUE;
 				}
 				GetDlgItemText(hWnd, ID_STR_LINE_USER, UserName, 255);
-				
-				WriteFile(g_hPipeSystem, UserName, strlen(UserName) + 1, &cbWritten, NULL);
-				
+				WriteFile(g_hPipeSystem, UserName, strlen(UserName) + 1, &cbWritten, NULL);//отправили в системный пайп Username, потому что по нему будет идентифицироваться пайпы клиентские
 				strcpy(PipeNameChat, PipeName);
 				strcat(PipeNameChat, UserName);
 				//Sleep(100);//чтобы там успелось создаться все(на сервере)
 				//ЗДЕСЬ МОЖЕТ ЗАСТОПОРИТЬСЯ ИЗ-ЗА GENERIC_READ | GENERIC_WRITE
-				// НО ЕСЛИ ЧТО-ТО ОДНО, ТО РАБОТАЕТ ПОЧЕМУ-ТО
-				g_hPipeChat = CreateFile(PipeNameChat, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+				// НО ЕСЛИ ЧТО-ТО ОДНО, ТО РАБОТАЕТ ПОЧЕМУ-ТО				
+				mst = GetLastError();
 				break;
 			}
-			
-			
 		case ID_BTN_SEND:
-			//WaitForSingleObject(hMutex, INFINITE);
+
+			g_hPipeChat = CreateFile(PipeNameChat, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)
+			WaitForSingleObject(hMutex, INFINITE);
 			GetDlgItemText(hWnd, ID_RICHEDITMESSEND, chatMessage, 255);
 			WriteFile(g_hPipeChat, chatMessage, strlen(chatMessage) + 1, &cbWritten, NULL);
+			SetEvent(g_hEvent);
+			ThreadId = GetCurrentThreadId();
+			PostThreadMessage(ThreadServerId, (UINT)ThreadId, 0, (LPARAM)&cd);
 			ReleaseMutex(hMutex);
-			mst = GetLastError();
 			break;
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
