@@ -20,9 +20,10 @@
 using namespace std;
 // Global Variables:
 char PipeNameSystem [] = "\\\\.\\pipe\\MyPipe";
+char fullMesage[255] = "";
 DWORD ThreadServerId;
 DWORD cbWritten;
-HANDLE g_hPipeChat;
+HANDLE g_hPipeChat = 0;
 HANDLE g_hPipeSystem;
 HINSTANCE hInst;		
 HWND hwndGetText;						// current instance
@@ -180,7 +181,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	HDC hdc;
 	char UserName[50] = "";
 	char chatMessage[200] = "";
-	char fullMesage[255] = "";
+	
 	BOOL connected = FALSE;
 	DWORD mst;
 	switch (message)
@@ -196,12 +197,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_BTN_CONNECT_SERVER://подключение к каналу
 			if (connected)
 			{
-				DeleteFile(PipeName);
+				DeleteFile(PipeNameChat);
+				CloseHandle(g_hPipeChat);
 				SetWindowText((HWND)lParam, "Connect");
 				break;
 			}
 			else 
 			{
+				
 				BOOL bSuccess = FALSE;
 				char ThreadServerIdChar[50];
 				// здесь если ставлю GENERIC_READ | GENERIC_WRITE прога начинает тупить хз
@@ -219,7 +222,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 				GetDlgItemText(hWnd, ID_STR_LINE_USER, UserName, 255);
 				WriteFile(g_hPipeSystem, UserName, strlen(UserName) + 1, &cbWritten, NULL);//отправили в системный пайп Username, потому что по нему будет идентифицироватьс€ пайпы клиентские
-				strcpy(PipeNameChat, PipeName);
+				
+				strcpy(PipeNameChat, PipeNameSystem);
 				strcat(PipeNameChat, UserName);
 				//Sleep(100);//чтобы там успелось создатьс€ все(на сервере)
 				//«ƒ≈—№ ћќ∆≈“ «ј—“ќѕќ–»“№—я »«-«ј GENERIC_READ | GENERIC_WRITE
@@ -228,15 +232,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				break;
 			}
 		case ID_BTN_SEND:
-
-			g_hPipeChat = CreateFile(PipeNameChat, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)
+			if (!g_hPipeChat)
+				g_hPipeChat = CreateFile(PipeNameChat, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)
 			WaitForSingleObject(hMutex, INFINITE);
 			GetDlgItemText(hWnd, ID_RICHEDITMESSEND, chatMessage, 255);
+			GetDlgItemText(hWnd, ID_STR_LINE_USER, UserName, 255);
 			WriteFile(g_hPipeChat, chatMessage, strlen(chatMessage) + 1, &cbWritten, NULL);
 			SetEvent(g_hEvent);
+			ReleaseMutex(hMutex);
 			ThreadId = GetCurrentThreadId();
 			PostThreadMessage(ThreadServerId, (UINT)ThreadId, 0, (LPARAM)&cd);
-			ReleaseMutex(hMutex);
+			strcpy(fullMesage, UserName);
+			strcat(fullMesage, ": ");
+			strcat(fullMesage,  chatMessage);
+			strcat(fullMesage, "\n");
+			SetWindowText(hwndGetText, fullMesage);
+			Sleep(200);
 			break;
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
@@ -252,7 +263,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
-		DeleteFile(PipeName);
+		DeleteFile(PipeNameChat);
 		DeleteFile(PipeNameSystem);
 		CloseHandle(g_hPipeSystem);
 		CloseHandle(g_hPipeChat);

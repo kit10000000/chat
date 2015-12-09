@@ -38,7 +38,7 @@ int _tmain(VOID)
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			for (it = ThreadsId.begin(); it != ThreadsId.end(); it++)
-			if ((DWORD)msg.message == *it){
+				if ((DWORD)msg.message == *it){
 				//сначала пишем во все пайпы все сообщения 
 				vector <int>::size_type size = ListOfUserNames.size();
 				for (int i = 0; i < size; i++)
@@ -87,11 +87,11 @@ int _tmain(VOID)
 		{
 			DWORD ThreadMainId = GetCurrentThreadId();
 			//посылаем id потока этого, чтобы потом могли обмениваться сообщениями с клиентом, а то клиент не будет знать, куда отправлять сообщение
-			bSuccess = WriteFile(hPipe, (LPCVOID)ThreadMainId, sizeof(DWORD) + 1, &dwBytesRead, NULL);
+			bSuccess = WriteFile(hPipe, (LPCVOID)&ThreadMainId, sizeof(DWORD) + 1, &dwBytesRead, NULL);
 			MST = GetLastError();
 			_tprintf(TEXT("[SERVER] Client connected, creating a processing thread.\n"));
 			//Create a thread for this client.
-			hThread = CreateThread(NULL,0,ThreadProc,(LPVOID)hPipe,0,&dwThreadId);
+			hThread = CreateThread(NULL,0,ThreadProc,(LPVOID)hPipe,0,&dwThreadId);//(!!!!!)может быть трабл? call stack предупреждает
 			
 			//Thread created?
 			if (NULL == hThread)
@@ -139,10 +139,9 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 	//пробуем читать, пока не получится
 	//создаем здесь пайп для клиента
 	while (bSuccess != TRUE)
-	{	 
-		if (bSuccess = ReadFile(hPipe,UserName,sizeof(UserName),&dwBytesRead,NULL))//здесь возник дедлок, я жду, пока клиент пришлет мне юзернейм, и клиент тоже чего-то ждет
-		{ // короче в клиенте ждет, чтобы прочитать айди серверного потока, а тут ждет здесь
-			//почему-то клиент не читает из серверного пайпа айди потока
+	{	
+		if (bSuccess = ReadFile(hPipe,UserName,sizeof(UserName),&dwBytesRead,NULL))
+		{ 
 			//(!!!)
 			LPSTR NameOfUser = UserName;
 			ListOfUserNames.push_back(NameOfUser);
@@ -160,6 +159,7 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 		WaitForSingleObject(hEvent, INFINITE);
 		WaitForSingleObject(hMutex, INFINITE);
 		// Read client requests from the pipe.
+		//ЗДЕСЬ ЛОМАЕТСЯ ПРИ ВТОРОМ ЧТЕНИИ, ГОВОРИТ, ЧТО УДАЛЕН ПАЙП
 		bSuccess = ReadFile(hPipeClient,szBuffer,sizeof(szBuffer),&dwBytesRead,NULL);
 		//if request not correct
 		_tprintf(TEXT("bla1\n"));
@@ -179,7 +179,7 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 		strcpy(fullMesage,UserName);
 		strcat(fullMesage, ": ");
 		strcat(fullMesage, szBuffer);
-		bSuccess = WriteFile(hPipeClient,fullMesage,strlen(fullMesage) + 1,&dwBytesRead,NULL);
+		//bSuccess = WriteFile(hPipeClient,fullMesage,strlen(fullMesage) + 1,&dwBytesRead,NULL);
 		_tprintf(TEXT("%s\n"), fullMesage);
 	ReleaseMutex(hMutex);
 	}//while
