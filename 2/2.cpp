@@ -46,7 +46,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
  	// TODO: Place code here.
 	MSG msg;
 	HACCEL hAccelTable;
-	char fullMesage[255] = "";
+	char fullMessage[255] = "";
 	BOOL bSuccess = FALSE;
 	DWORD dwBytesRead = 0;
 	// Initialize global strings
@@ -59,16 +59,14 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	{
 		return FALSE;
 	}
-
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_MY2));
-
 	// Main message loop:
 	while (GetMessage(&msg, NULL, 0, 0)) //клиент считывает (!)
 	{
-		bSuccess = ReadFile(g_hPipeChat,fullMesage,sizeof (fullMesage),&dwBytesRead,NULL);//херово
+//		bSuccess = ReadFile(g_hPipeChat,fullMessage,sizeof (fullMessage),&dwBytesRead,NULL);//херово
 		if ((TRUE == bSuccess) || (NULL != dwBytesRead))
 		{
-			SetWindowText(hwndGetText, fullMesage);
+			SetWindowText(hwndGetText, fullMessage);
 		}
 		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
 		{
