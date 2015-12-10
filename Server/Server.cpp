@@ -37,7 +37,7 @@ int _tmain(VOID)
 		//возможно это из-за неверного указания HWND
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
-			for (it = ThreadsId.begin(); it != ThreadsId.end(); it++)
+			for (it = ThreadsId.begin(); it != ThreadsId.end(); it++) //проверка того, что у нас действительно сообщение от потока пришли, а не от чего-то другого
 				if ((DWORD)msg.message == *it){
 				//сначала пишем во все пайпы все сообщения 
 				vector <int>::size_type size = ListOfUserNames.size();
@@ -88,6 +88,14 @@ int _tmain(VOID)
 			DWORD ThreadMainId = GetCurrentThreadId();
 			//посылаем id потока этого, чтобы потом могли обмениваться сообщениями с клиентом, а то клиент не будет знать, куда отправлять сообщение
 			bSuccess = WriteFile(hPipe, (LPCVOID)&ThreadMainId, sizeof(DWORD) + 1, &dwBytesRead, NULL);
+			DWORD ThreadClientId;
+			MSG Msg;
+			BOOL flagPeekMsg;
+			do //пока клиент не отправит нам айди своего потока, чтобы мы могли добавить его в список всех айди потоков
+			{ 
+				flagPeekMsg = PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE);
+			} while (flagPeekMsg != TRUE);
+			ThreadsId.push_back(Msg.message);
 			MST = GetLastError();
 			_tprintf(TEXT("[SERVER] Client connected, creating a processing thread.\n"));
 			//Create a thread for this client.
@@ -132,9 +140,7 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 	char NamePipeClient[100];
 	DWORD mist;
 	_tprintf(TEXT("[ThreadProc] Created, receiving and processing messages.\n"));
-	DWORD ThreadClientId;
-	ThreadClientId = GetCurrentThreadId();
-	ThreadsId.push_back(ThreadClientId);
+	
 
 	//пробуем читать, пока не получится
 	//создаем здесь пайп для клиента

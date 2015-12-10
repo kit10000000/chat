@@ -215,6 +215,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				
 				}
 				ThreadServerId = (DWORD)ThreadServerIdChar;
+				DWORD CurrentThreadId = GetCurrentThreadId();
+				PostThreadMessage(ThreadServerId, CurrentThreadId, 0, (LPARAM)&cd);//отправляю тут серверу id потока клиента, чтобы он мог добавить его в список всех айди потоков всех клиентов
 				if (g_hPipeSystem != INVALID_HANDLE_VALUE) // условие, если канал создан, то отображает дисконнект на кнопке
 				{
 					SetWindowText((HWND)lParam, "Disconnect");

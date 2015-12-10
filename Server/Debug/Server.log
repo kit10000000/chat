@@ -1,9 +1,2 @@
-﻿Build started 09.12.15 3:45:21.
-     1>Project "\\Mac\Home\Desktop\programming\c++\chat\Server\Server.vcxproj" on node 3 (Build target(s)).
-     1>Link:
-         Server.vcxproj -> \\Mac\Home\Desktop\programming\c++\chat\Debug\Server.exe
-     1>Done Building Project "\\Mac\Home\Desktop\programming\c++\chat\Server\Server.vcxproj" (Build target(s)).
-
-Build succeeded.
-
-Time Elapsed 00:00:00.33
+﻿  Server.cpp
+\\mac\home\desktop\programming\c++\chat\server\server.cpp : fatal error C1853: 'Debug\Server.pch' precompiled header file is from a previous version of the compiler, or the precompiled header is C++ and you are using it from C (or vice versa)
