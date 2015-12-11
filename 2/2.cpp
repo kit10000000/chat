@@ -34,6 +34,7 @@ CHAR myMutex[] ="MutexName";
 HANDLE g_hEvent;
 char PipeName[100]; //переменная для создания канала, считывает из поля имя канала
 char PipeNameChat[100];
+DWORD  ThreadServerIdChar[1];
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
@@ -56,20 +57,15 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
 	LoadString(hInstance, IDC_MY2, szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
-
 	// Perform application initialization:
 	if (!InitInstance (hInstance, nCmdShow))
 	{
 		return FALSE;
 	}
-
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_MY2));
-
-
 	// Main message loop:
 	while (GetMessage(&msg, NULL, 0, 0)) //клиент считывает (!)
 	{
-	
 		if (msg.message == I_MUST_READ_MY_PIPE)
 		{
 			bSuccess = ReadFile(g_hPipeChat, fullMesage, sizeof (fullMesage), &dwBytesRead, NULL);
@@ -186,7 +182,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	DWORD mst;
 	switch (message)
 	{
-		
 	case WM_COMMAND:
 		wmId    = LOWORD(wParam);
 		wmEvent = HIWORD(wParam);
@@ -204,9 +199,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			else 
 			{
-				
 				BOOL bSuccess = FALSE;
-				DWORD  ThreadServerIdChar[1];
 				// здесь если ставлю GENERIC_READ | GENERIC_WRITE прога начинает тупить хз
 				g_hPipeSystem = CreateFile(PipeNameSystem, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
 				while (bSuccess != TRUE)
@@ -225,7 +218,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 				GetDlgItemText(hWnd, ID_STR_LINE_USER, UserName, 255);
 				WriteFile(g_hPipeSystem, UserName, strlen(UserName) + 1, &cbWritten, NULL);//отправили в системный пайп Username, потому что по нему будет идентифицироваться пайпы клиентские
-				
 				strcpy(PipeNameChat, PipeNameSystem);
 				strcat(PipeNameChat, UserName);
 				//Sleep(100);//чтобы там успелось создаться все(на сервере)
@@ -244,7 +236,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			SetEvent(g_hEvent);
 			ReleaseMutex(hMutex);
 			ThreadId = GetCurrentThreadId();
-			PostThreadMessage(ThreadServerId, (UINT)ThreadId, 0, (LPARAM)&cd);
+			PostThreadMessage(ThreadServerIdChar[0], (UINT)ThreadId, 0, (LPARAM)&cd);
 //			strcpy(fullMesage, UserName);
 //			strcat(fullMesage, ": ");
 //			strcat(fullMesage,  chatMessage);

@@ -53,14 +53,12 @@ int _tmain(VOID)
 					DeleteFile(NamePipeClient);
 					CloseHandle(hPipeSystem);
 				}
-
 				//потом отсылаем сообщения
 				for (it = ThreadsId.begin(); it != ThreadsId.end(); it++)//отсылаем всем клиентам сообщения о том, что надо читать пайпы
 				{
 					PostThreadMessage((DWORD)&it, I_MUST_READ_MY_PIPE, 0, (LPARAM)&cd);
 				}
 			}
-			
 		}
 		//Create Named Pipe, if pipe not created, error and exit
 		hMutex = CreateMutex(NULL, FALSE, myMutex);
@@ -83,7 +81,6 @@ int _tmain(VOID)
 		}
 		_tprintf(TEXT("[SERVER] Waiting for client connection...\n"));
 		bConnected = ConnectNamedPipe(hPipe, NULL);
-		
 		if (bConnected == TRUE)
 		{
 			DWORD ThreadMainId = GetCurrentThreadId();
@@ -102,8 +99,7 @@ int _tmain(VOID)
 			MST = GetLastError();
 			_tprintf(TEXT("[SERVER] Client connected, creating a processing thread.\n"));
 			//Create a thread for this client.
-			hThread = CreateThread(NULL,0,ThreadProc,(LPVOID)hPipe,0,&dwThreadId);//(!!!!!)может быть трабл? call stack предупреждает
-			
+			hThread = CreateThread(NULL,0,ThreadProc,(LPVOID)hPipe,0,&dwThreadId);//(!!!!!)может быть трабл? call stack предупреждает	
 			//Thread created?
 			if (NULL == hThread)
 			{
@@ -156,7 +152,6 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 			strcat(NamePipeClient, UserName);
 			hPipeClient = CreateNamedPipe(NamePipeClient,PIPE_ACCESS_DUPLEX,PIPE_TYPE_MESSAGE |PIPE_READMODE_MESSAGE |PIPE_NOWAIT,PIPE_UNLIMITED_INSTANCES,MAX_BUFFER_SIZE,MAX_BUFFER_SIZE,0,NULL);
 			mist = GetLastError();
-			
 		}	
 	}
 	while (true)
