@@ -84,23 +84,23 @@ int _tmain(VOID)
 		if (bConnected == TRUE)
 		{
 			DWORD ThreadMainId = GetCurrentThreadId();
-			//посылаем id потока этого, чтобы потом могли обмениваться сообщениями с клиентом, а то клиент не будет знать, куда отправлять сообщение
+			//посылаем id потока этого, чтобы потом могли обмениваться сообщениями с клиентом, а то клиент не будет знать, куда отправлять сообщение(старое)
 			_tprintf(TEXT("bla2\n"));
 			bSuccess = WriteFile(hPipe, (LPCVOID)&ThreadMainId, sizeof(LPCVOID)+1, &dwBytesRead, NULL);
 			DWORD MST = GetLastError();
-//			DWORD ThreadClientId;
+//			DWORD ThreadClientId;(старое)
 			MSG Msg;
 			BOOL flagPeekMsg;
-			do //пока клиент не отправит нам айди своего потока, чтобы мы могли добавить его в список всех айди потоков
+			do //пока клиент не отправит нам айди своего потока, чтобы мы могли добавить его в список всех айди потоков(старое)
 			{ 
 				flagPeekMsg = PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE);
 			} while (flagPeekMsg != TRUE);
 			ThreadsId.push_back(Msg.message);
 			MST = GetLastError();
 			_tprintf(TEXT("[SERVER] Client connected, creating a processing thread.\n"));
-			//Create a thread for this client.
-			hThread = CreateThread(NULL,0,ThreadProc,(LPVOID)hPipe,0,&dwThreadId);//(!!!!!)может быть трабл? call stack предупреждает	
-			//Thread created?
+			//Create a thread for this client.(старое)
+			hThread = CreateThread(NULL,0,ThreadProc,(LPVOID)hPipe,0,&dwThreadId);//(!!!!!)может быть трабл? call stack предупреждает(старое)	
+			//Thread created?(старое)
 			if (NULL == hThread)
 			{
 				_tprintf(TEXT("[SERVER] CreateThread failed, Error %ld\n"),
@@ -110,14 +110,14 @@ int _tmain(VOID)
 			else
 			{
 				CloseHandle(hThread);
-			}//(NULL == hThread)
+			}//(NULL == hThread)(старое)
 		}
 		else
 		{
-			//The client not connect, so close the pipe.
+			//The client not connect, so close the pipe.(старое)
 			CloseHandle(hPipe);
-		}//(bConnected)
-	}//while
+		}//(bConnected)(старое)
+	}//while(старое)
 	system("PAUSE");
 	return 0;
 }
@@ -138,8 +138,8 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 	DWORD mist;
 	_tprintf(TEXT("[ThreadProc] Created, receiving and processing messages.\n"));
 	
-	//пробуем читать, пока не получится
-	//создаем здесь пайп для клиента
+	//пробуем читать, пока не получится(старое)
+	//создаем здесь пайп для клиента(старое)
 	while (bSuccess != TRUE)
 	{	
 		if (bSuccess = ReadFile(hPipe,UserName,sizeof(UserName),&dwBytesRead,NULL))
@@ -158,10 +158,10 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 	{
 		WaitForSingleObject(hEvent, INFINITE);
 		WaitForSingleObject(hMutex, INFINITE);
-		// Read client requests from the pipe.
-		//ЗДЕСЬ ЛОМАЕТСЯ ПРИ ВТОРОМ ЧТЕНИИ, ГОВОРИТ, ЧТО УДАЛЕН ПАЙП
+		// Read client requests from the pipe.(старое)
+		//ЗДЕСЬ ЛОМАЕТСЯ ПРИ ВТОРОМ ЧТЕНИИ, ГОВОРИТ, ЧТО УДАЛЕН ПАЙП(старое)
 		bSuccess = ReadFile(hPipeClient,szBuffer,sizeof(szBuffer),&dwBytesRead,NULL);
-		//if request not correct
+		//if request not correct(старое)
 		_tprintf(TEXT("bla1\n"));
 		if ((FALSE == bSuccess) ||(NULL == dwBytesRead))
 		{
@@ -174,15 +174,15 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 				_tprintf(TEXT("[ThreadProc] ReadFile failed, Error %ld.\n"),
 					GetLastError());
 			}
-			break;//(ERROR_BROKEN_PIPE == GetLastError())
-		}//(!bSuccess || dwBytesRead == 0)
+			break;//(ERROR_BROKEN_PIPE == GetLastError())(старое)
+		}//(!bSuccess || dwBytesRead == 0)(старое)
 		strcpy(fullMesage,UserName);
 		strcat(fullMesage, ": ");
 		strcat(fullMesage, szBuffer);
-		//bSuccess = WriteFile(hPipeClient,fullMesage,strlen(fullMesage) + 1,&dwBytesRead,NULL);
+		//bSuccess = WriteFile(hPipeClient,fullMesage,strlen(fullMesage) + 1,&dwBytesRead,NULL);(старое)
 		_tprintf(TEXT("%s\n"), fullMesage);
 	ReleaseMutex(hMutex);
-	}//while
+	}//while(старое)
 	FlushFileBuffers(hPipe);
 	FlushFileBuffers(hPipeClient);
 	DisconnectNamedPipe(hPipe);
