@@ -189,7 +189,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Parse the menu selections:
 		switch (wmId)
 		{
-		case ID_BTN_CONNECT_SERVER://подключение к каналу
+		case ID_BTN_CONNECT_SERVER://подключение к каналу(старое)
 			if (connected)
 			{
 				DeleteFile(PipeNameChat);
@@ -200,35 +200,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			else 
 			{
 				BOOL bSuccess = FALSE;
-				// здесь если ставлю GENERIC_READ | GENERIC_WRITE прога начинает тупить хз
+				// здесь если ставлю GENERIC_READ | GENERIC_WRITE прога начинает тупить хз(старое)
 				g_hPipeSystem = CreateFile(PipeNameSystem, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
 				while (bSuccess != TRUE)
 				{
-					bSuccess = ReadFile(g_hPipeSystem, (void*)ThreadServerIdChar, sizeof(ThreadServerIdChar), &dwBytesRead, NULL);//как только подключились к серверу, считываем айди его потока, чтобы мы могли ему отправить сообщение, что мы отправили сообщение в чат
+					bSuccess = ReadFile(g_hPipeSystem, (void*)ThreadServerIdChar, sizeof(ThreadServerIdChar), &dwBytesRead, NULL);//как только подключились к серверу, считываем айди его потока, чтобы мы могли ему отправить сообщение, что мы отправили сообщение в чат(старое)
 					mst = GetLastError();
 				}
 //				ThreadServerId = (DWORD)ThreadServerIdChar;
 				DWORD CurrentThreadId = GetCurrentThreadId();
-				 PostThreadMessage((DWORD)ThreadServerIdChar[0], CurrentThreadId, 0, (LPARAM)&cd);//отправляю тут серверу id потока клиента, чтобы он мог добавить его в список всех айди потоков всех клиентов
+				 PostThreadMessage((DWORD)ThreadServerIdChar[0], CurrentThreadId, 0, (LPARAM)&cd);//отправляю тут серверу id потока клиента, чтобы он мог добавить его в список всех айди потоков всех клиентов(старое)
 				mst = GetLastError();
-				if (g_hPipeSystem != INVALID_HANDLE_VALUE) // условие, если канал создан, то отображает дисконнект на кнопке
+				if (g_hPipeSystem != INVALID_HANDLE_VALUE) // условие, если канал создан, то отображает дисконнект на кнопке(старое)
 				{
 					SetWindowText((HWND)lParam, "Disconnect");
 					connected = TRUE;
 				}
 				GetDlgItemText(hWnd, ID_STR_LINE_USER, UserName, 255);
-				WriteFile(g_hPipeSystem, UserName, strlen(UserName) + 1, &cbWritten, NULL);//отправили в системный пайп Username, потому что по нему будет идентифицироваться пайпы клиентские
+				WriteFile(g_hPipeSystem, UserName, strlen(UserName) + 1, &cbWritten, NULL);//отправили в системный пайп Username, потому что по нему будет идентифицироваться пайпы клиентские(старое)
 				strcpy(PipeNameChat, PipeNameSystem);
 				strcat(PipeNameChat, UserName);
-				//Sleep(100);//чтобы там успелось создаться все(на сервере)
-				//ЗДЕСЬ МОЖЕТ ЗАСТОПОРИТЬСЯ ИЗ-ЗА GENERIC_READ | GENERIC_WRITE
-				// НО ЕСЛИ ЧТО-ТО ОДНО, ТО РАБОТАЕТ ПОЧЕМУ-ТО				
+				//Sleep(100);//чтобы там успелось создаться все(на сервере)(старое)
+				//ЗДЕСЬ МОЖЕТ ЗАСТОПОРИТЬСЯ ИЗ-ЗА GENERIC_READ | GENERIC_WRITE(старое)
+				// НО ЕСЛИ ЧТО-ТО ОДНО, ТО РАБОТАЕТ ПОЧЕМУ-ТО	(старое)			
 				mst = GetLastError();
 				break;
 			}
 		case ID_BTN_SEND:
 			if (!g_hPipeChat)
-				g_hPipeChat = CreateFile(PipeNameChat, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)
+				g_hPipeChat = CreateFile(PipeNameChat, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)(старое)
 			WaitForSingleObject(hMutex, INFINITE);
 			GetDlgItemText(hWnd, ID_RICHEDITMESSEND, chatMessage, 255);
 			GetDlgItemText(hWnd, ID_STR_LINE_USER, UserName, 255);
@@ -236,12 +236,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			SetEvent(g_hEvent);
 			ReleaseMutex(hMutex);
 			ThreadId = GetCurrentThreadId();
-			work = PostThreadMessage(ThreadServerIdChar[0], (UINT)ThreadId, 0, (LPARAM)&cd); //!!!!!!!!!!!!!!!!!!!!
-//			strcpy(fullMesage, UserName);
-//			strcat(fullMesage, ": ");
-//			strcat(fullMesage,  chatMessage);
-//			strcat(fullMesage, "\n");
-//			SetWindowText(hwndGetText, fullMesage);
+			work = PostThreadMessage(ThreadServerIdChar[0], (UINT)ThreadId, 0, (LPARAM)&cd); //!!!!!!!!!!!!!!!!!!!!(старое)
+//			strcpy(fullMesage, UserName);(старое)
+//			strcat(fullMesage, ": ");(старое)
+//			strcat(fullMesage,  chatMessage);(старое)
+//			strcat(fullMesage, "\n");(старое)
+//			SetWindowText(hwndGetText, fullMesage);(старое)
 			Sleep(200);
 			break;
 		case IDM_EXIT:
@@ -253,7 +253,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
-		// TODO: Add any drawing code here...
+		// TODO: Add any drawing code here...(старое)
 		EndPaint(hWnd, &ps);
 		break;
 	case WM_DESTROY:

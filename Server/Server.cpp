@@ -35,13 +35,13 @@ int _tmain(VOID)
 	{
 		//вот здесь встает и дальше не идет
 		//возможно это из-за неверного указания HWND
-		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			for (it = ThreadsId.begin(); it != ThreadsId.end(); it++) //проверка того, что у нас действительно сообщение от потока пришли, а не от чего-то другого
 				if ((DWORD)msg.message == *it){
 				//сначала пишем во все пайпы все сообщения 
 				vector <int>::size_type size = ListOfUserNames.size();
-				for (int i = 0; i < size; i++)
+				for (unsigned int i = 0; i < size; i++)
 				{
 					_tprintf(TEXT("bla3\n"));
 					//(!!!)
@@ -88,7 +88,7 @@ int _tmain(VOID)
 			_tprintf(TEXT("bla2\n"));
 			bSuccess = WriteFile(hPipe, (LPCVOID)&ThreadMainId, sizeof(LPCVOID)+1, &dwBytesRead, NULL);
 			DWORD MST = GetLastError();
-			DWORD ThreadClientId;
+//			DWORD ThreadClientId;
 			MSG Msg;
 			BOOL flagPeekMsg;
 			do //пока клиент не отправит нам айди своего потока, чтобы мы могли добавить его в список всех айди потоков
