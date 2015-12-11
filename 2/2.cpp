@@ -206,17 +206,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				
 				BOOL bSuccess = FALSE;
-				char ThreadServerIdChar[50];
+				DWORD  ThreadServerIdChar[1];
 				// здесь если ставлю GENERIC_READ | GENERIC_WRITE прога начинает тупить хз
 				g_hPipeSystem = CreateFile(PipeNameSystem, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
 				while (bSuccess != TRUE)
 				{
-					bSuccess = ReadFile(g_hPipeSystem, ThreadServerIdChar, sizeof(UserName), &dwBytesRead, NULL);//как только подключились к серверу, считываем айди его потока, чтобы мы могли ему отправить сообщение, что мы отправили сообщение в чат
-				
+					bSuccess = ReadFile(g_hPipeSystem, (void*)ThreadServerIdChar, sizeof(ThreadServerIdChar), &dwBytesRead, NULL);//как только подключились к серверу, считываем айди его потока, чтобы мы могли ему отправить сообщение, что мы отправили сообщение в чат
+					mst = GetLastError();
 				}
-				ThreadServerId = (DWORD)ThreadServerIdChar;
+//				ThreadServerId = (DWORD)ThreadServerIdChar;
 				DWORD CurrentThreadId = GetCurrentThreadId();
-				PostThreadMessage(ThreadServerId, CurrentThreadId, 0, (LPARAM)&cd);//отправляю тут серверу id потока клиента, чтобы он мог добавить его в список всех айди потоков всех клиентов
+				BOOL work = PostThreadMessage((DWORD)ThreadServerIdChar[0], CurrentThreadId, 0, (LPARAM)&cd);//отправляю тут серверу id потока клиента, чтобы он мог добавить его в список всех айди потоков всех клиентов
+				mst = GetLastError();
 				if (g_hPipeSystem != INVALID_HANDLE_VALUE) // условие, если канал создан, то отображает дисконнект на кнопке
 				{
 					SetWindowText((HWND)lParam, "Disconnect");
@@ -244,11 +245,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ReleaseMutex(hMutex);
 			ThreadId = GetCurrentThreadId();
 			PostThreadMessage(ThreadServerId, (UINT)ThreadId, 0, (LPARAM)&cd);
-			strcpy(fullMesage, UserName);
-			strcat(fullMesage, ": ");
-			strcat(fullMesage,  chatMessage);
-			strcat(fullMesage, "\n");
-			SetWindowText(hwndGetText, fullMesage);
+//			strcpy(fullMesage, UserName);
+//			strcat(fullMesage, ": ");
+//			strcat(fullMesage,  chatMessage);
+//			strcat(fullMesage, "\n");
+//			SetWindowText(hwndGetText, fullMesage);
 			Sleep(200);
 			break;
 		case IDM_EXIT:

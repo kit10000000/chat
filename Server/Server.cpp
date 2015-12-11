@@ -43,6 +43,7 @@ int _tmain(VOID)
 				vector <int>::size_type size = ListOfUserNames.size();
 				for (int i = 0; i < size; i++)
 				{
+					_tprintf(TEXT("bla3\n"));
 					//(!!!)
 					LPSTR NamePipeClient = new CHAR[255];
 					NamePipeClient = lpszPipename;
@@ -82,12 +83,14 @@ int _tmain(VOID)
 		}
 		_tprintf(TEXT("[SERVER] Waiting for client connection...\n"));
 		bConnected = ConnectNamedPipe(hPipe, NULL);
-		DWORD MST = GetLastError();
+		
 		if (bConnected == TRUE)
 		{
 			DWORD ThreadMainId = GetCurrentThreadId();
 			//посылаем id потока этого, чтобы потом могли обмениваться сообщениями с клиентом, а то клиент не будет знать, куда отправлять сообщение
-			bSuccess = WriteFile(hPipe, (LPCVOID)&ThreadMainId, sizeof(DWORD) + 1, &dwBytesRead, NULL);
+			_tprintf(TEXT("bla2\n"));
+			bSuccess = WriteFile(hPipe, (LPCVOID)&ThreadMainId, sizeof(LPCVOID)+1, &dwBytesRead, NULL);
+			DWORD MST = GetLastError();
 			DWORD ThreadClientId;
 			MSG Msg;
 			BOOL flagPeekMsg;
@@ -134,14 +137,11 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 	DWORD dwBytesRead = 0;
 	TCHAR szBuffer[MAX_BUFFER_SIZE] = { 0 };
 	HANDLE hPipe = (HANDLE)lpvParam;
-	
 	char UserName[50] = "";
-	
 	char NamePipeClient[100];
 	DWORD mist;
 	_tprintf(TEXT("[ThreadProc] Created, receiving and processing messages.\n"));
 	
-
 	//пробуем читать, пока не получится
 	//создаем здесь пайп для клиента
 	while (bSuccess != TRUE)
@@ -155,7 +155,6 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 			strcpy(NamePipeClient, lpszPipename);
 			strcat(NamePipeClient, UserName);
 			hPipeClient = CreateNamedPipe(NamePipeClient,PIPE_ACCESS_DUPLEX,PIPE_TYPE_MESSAGE |PIPE_READMODE_MESSAGE |PIPE_NOWAIT,PIPE_UNLIMITED_INSTANCES,MAX_BUFFER_SIZE,MAX_BUFFER_SIZE,0,NULL);
-			
 			mist = GetLastError();
 			
 		}	

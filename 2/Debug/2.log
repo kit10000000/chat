@@ -1,2 +1,15 @@
-﻿  2.cpp
-\\mac\home\desktop\programming\c++\chat\2\2.cpp : fatal error C1853: 'Debug\2.pch' precompiled header file is from a previous version of the compiler, or the precompiled header is C++ and you are using it from C (or vice versa)
+﻿Build started 11.12.2015 15:06:58.
+     1>Project "D:\github\chat\2\2.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         D:\VisualSt\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\2.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt 2.cpp
+         2.cpp
+       Link:
+         D:\VisualSt\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\github\chat\Debug\2.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\github\chat\Debug\2.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\github\chat\Debug\2.lib" /MACHINE:X86 Debug\2.res
+         Debug\2.obj
+         Debug\stdafx.obj
+         2.vcxproj -> D:\github\chat\Debug\2.exe
+     1>Done Building Project "D:\github\chat\2\2.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.52
