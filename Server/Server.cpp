@@ -35,7 +35,7 @@ int _tmain(VOID)
 	{
 		//вот здесь встает и дальше не идет
 		//возможно это из-за неверного указания HWND
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			for (it = ThreadsId.begin(); it != ThreadsId.end(); it++) //проверка того, что у нас действительно сообщение от потока пришли, а не от чего-то другого
 				if ((DWORD)msg.message == *it){

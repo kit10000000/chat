@@ -177,7 +177,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	HDC hdc;
 	char UserName[50] = "";
 	char chatMessage[200] = "";
-	
 	BOOL connected = FALSE;
 	DWORD mst;
 	switch (message)
@@ -186,6 +185,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		wmId    = LOWORD(wParam);
 		wmEvent = HIWORD(wParam);
 		COPYDATASTRUCT cd;
+		BOOL work;
 		// Parse the menu selections:
 		switch (wmId)
 		{
@@ -209,7 +209,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 //				ThreadServerId = (DWORD)ThreadServerIdChar;
 				DWORD CurrentThreadId = GetCurrentThreadId();
-				BOOL work = PostThreadMessage((DWORD)ThreadServerIdChar[0], CurrentThreadId, 0, (LPARAM)&cd);//отправляю тут серверу id потока клиента, чтобы он мог добавить его в список всех айди потоков всех клиентов
+				 PostThreadMessage((DWORD)ThreadServerIdChar[0], CurrentThreadId, 0, (LPARAM)&cd);//отправляю тут серверу id потока клиента, чтобы он мог добавить его в список всех айди потоков всех клиентов
 				mst = GetLastError();
 				if (g_hPipeSystem != INVALID_HANDLE_VALUE) // условие, если канал создан, то отображает дисконнект на кнопке
 				{
@@ -236,7 +236,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			SetEvent(g_hEvent);
 			ReleaseMutex(hMutex);
 			ThreadId = GetCurrentThreadId();
-			PostThreadMessage(ThreadServerIdChar[0], (UINT)ThreadId, 0, (LPARAM)&cd);
+			work = PostThreadMessage(ThreadServerIdChar[0], (UINT)ThreadId, 0, (LPARAM)&cd); //!!!!!!!!!!!!!!!!!!!!
 //			strcpy(fullMesage, UserName);
 //			strcat(fullMesage, ": ");
 //			strcat(fullMesage,  chatMessage);
