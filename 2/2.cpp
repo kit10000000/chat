@@ -35,6 +35,8 @@ HANDLE g_hEvent;
 char PipeName[100]; //переменная для создания канала, считывает из поля имя канала
 char PipeNameChat[100];
 DWORD  ThreadServerIdChar[1];
+OVERLAPPED OVLwrt;
+HANDLE hEventWrt;
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
@@ -179,6 +181,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	char chatMessage[200] = "";
 	BOOL connected = FALSE;
 	DWORD mst;
+			hEventWrt = CreateEvent(NULL, TRUE, FALSE, NULL);
+			OVLwrt.hEvent = hEventWrt;
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -217,7 +221,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					connected = TRUE;
 				}
 				GetDlgItemText(hWnd, ID_STR_LINE_USER, UserName, 255);
-				WriteFile(g_hPipeSystem, UserName, strlen(UserName) + 1, &cbWritten, NULL);//отправили в системный пайп Username, потому что по нему будет идентифицироваться пайпы клиентские(старое)
+				WriteFile(g_hPipeSystem, UserName, strlen(UserName) + 1, &cbWritten, &OVLwrt);//отправили в системный пайп Username, потому что по нему будет идентифицироваться пайпы клиентские(старое)
 				strcpy(PipeNameChat, PipeNameSystem);
 				strcat(PipeNameChat, UserName);
 				//Sleep(100);//чтобы там успелось создаться все(на сервере)(старое)
@@ -232,16 +236,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			WaitForSingleObject(hMutex, INFINITE);
 			GetDlgItemText(hWnd, ID_RICHEDITMESSEND, chatMessage, 255);
 			GetDlgItemText(hWnd, ID_STR_LINE_USER, UserName, 255);
-			WriteFile(g_hPipeChat, chatMessage, strlen(chatMessage) + 1, &cbWritten, NULL);
+			WriteFile(g_hPipeChat, chatMessage, strlen(chatMessage) + 1, &cbWritten, &OVLwrt);
 			SetEvent(g_hEvent);
 			ReleaseMutex(hMutex);
 			ThreadId = GetCurrentThreadId();
 			work = PostThreadMessage(ThreadServerIdChar[0], (UINT)ThreadId, 0, (LPARAM)&cd); //!!!!!!!!!!!!!!!!!!!!(старое)
-//			strcpy(fullMesage, UserName);(старое)
-//			strcat(fullMesage, ": ");(старое)
-//			strcat(fullMesage,  chatMessage);(старое)
-//			strcat(fullMesage, "\n");(старое)
-//			SetWindowText(hwndGetText, fullMesage);(старое)
 			Sleep(200);
 			break;
 		case IDM_EXIT:

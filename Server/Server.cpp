@@ -19,47 +19,32 @@ HANDLE hEvent;
 HANDLE hPipeClient;
 char fullMesage[255] = "";
 
+HANDLE hEventRd;
 
+OVERLAPPED OVLRd;
+//################################
+HANDLE Clients[];
+int ClientsCount = 0;
+int ClientInd;
+DWORD BTR;
+//##########################
+HANDLE hPipe = INVALID_HANDLE_VALUE;
+HANDLE hThread = NULL;
+BOOL bConnected = FALSE;
+DWORD dwThreadId = NULL;
+MSG msg;
+DWORD dwBytesRead;
+BOOL bSuccess;
+
+COPYDATASTRUCT cd;
 int _tmain(VOID)
 {
-	HANDLE hPipe = INVALID_HANDLE_VALUE;
-	HANDLE hThread = NULL;
-	BOOL bConnected = FALSE;
-	DWORD dwThreadId = NULL;
-	MSG msg;
-	DWORD dwBytesRead;
-	BOOL bSuccess;
-	vector<DWORD>::iterator it;
-	COPYDATASTRUCT cd;
+	BOOL flagPeekMsg = FALSE;
 	while (true)
 	{
 		//вот здесь встает и дальше не идет
 		//возможно это из-за неверного указания HWND
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			for (it = ThreadsId.begin(); it != ThreadsId.end(); it++) //проверка того, что у нас действительно сообщение от потока пришли, а не от чего-то другого
-				if ((DWORD)msg.message == *it){
-				//сначала пишем во все пайпы все сообщения 
-				vector <int>::size_type size = ListOfUserNames.size();
-				for (unsigned int i = 0; i < size; i++)
-				{
-					_tprintf(TEXT("bla3\n"));
-					//(!!!)
-					LPSTR NamePipeClient = new CHAR[255];
-					NamePipeClient = lpszPipename;
-					lstrcat(NamePipeClient, ListOfUserNames[i]);
-					HANDLE hPipeSystem = CreateFile((LPCSTR)NamePipeClient, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
-					bSuccess = WriteFile(hPipeSystem, (LPCVOID)fullMesage, sizeof(DWORD)+1, &dwBytesRead, NULL);
-					DeleteFile(NamePipeClient);
-					CloseHandle(hPipeSystem);
-				}
-				//потом отсылаем сообщения
-				for (it = ThreadsId.begin(); it != ThreadsId.end(); it++)//отсылаем всем клиентам сообщения о том, что надо читать пайпы
-				{
-					PostThreadMessage((DWORD)&it, I_MUST_READ_MY_PIPE, 0, (LPARAM)&cd);
-				}
-			}
-		}
+		
 		//Create Named Pipe, if pipe not created, error and exit
 		hMutex = CreateMutex(NULL, FALSE, myMutex);
 		hEvent = CreateEvent(NULL, FALSE, FALSE, "NamedEvent");
@@ -80,9 +65,16 @@ int _tmain(VOID)
 			}
 		}
 		_tprintf(TEXT("[SERVER] Waiting for client connection...\n"));
+
+		hEventRd = CreateEvent(NULL, TRUE, FALSE, NULL);
+		OVLRd.hEvent = hEventRd;
 		bConnected = ConnectNamedPipe(hPipe, NULL);
 		if (bConnected == TRUE)
 		{
+//######################################################################
+			ClientsCount++;
+			ClientInd = ClientsCount;
+//#############################
 			DWORD ThreadMainId = GetCurrentThreadId();
 			//посылаем id потока этого, чтобы потом могли обмениваться сообщениями с клиентом, а то клиент не будет знать, куда отправлять сообщение(старое)
 			_tprintf(TEXT("bla2\n"));
@@ -90,12 +82,14 @@ int _tmain(VOID)
 			DWORD MST = GetLastError();
 //			DWORD ThreadClientId;(старое)
 			MSG Msg;
-			BOOL flagPeekMsg;
-			do //пока клиент не отправит нам айди своего потока, чтобы мы могли добавить его в список всех айди потоков(старое)
+			
+			if (!flagPeekMsg)
+//			do //пока клиент не отправит нам айди своего потока, чтобы мы могли добавить его в список всех айди потоков(старое)
 			{ 
 				flagPeekMsg = PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE);
-			} while (flagPeekMsg != TRUE);
-			ThreadsId.push_back(Msg.message);
+				flagPeekMsg = TRUE;
+				ThreadsId.push_back(Msg.message);
+			}// while (flagPeekMsg != TRUE);
 			MST = GetLastError();
 			_tprintf(TEXT("[SERVER] Client connected, creating a processing thread.\n"));
 			//Create a thread for this client.(старое)
@@ -142,7 +136,7 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 	//создаем здесь пайп для клиента(старое)
 	while (bSuccess != TRUE)
 	{	
-		if (bSuccess = ReadFile(hPipe,UserName,sizeof(UserName),&dwBytesRead,NULL))
+		if (bSuccess = ReadFile(hPipe,UserName,sizeof(UserName),&dwBytesRead,&OVLRd))
 		{ 
 			//(!!!)
 			LPSTR NameOfUser = UserName;
@@ -158,9 +152,10 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 	{
 		WaitForSingleObject(hEvent, INFINITE);
 		WaitForSingleObject(hMutex, INFINITE);
-		// Read client requests from the pipe.(старое)
-		//ЗДЕСЬ ЛОМАЕТСЯ ПРИ ВТОРОМ ЧТЕНИИ, ГОВОРИТ, ЧТО УДАЛЕН ПАЙП(старое)
-		bSuccess = ReadFile(hPipeClient,szBuffer,sizeof(szBuffer),&dwBytesRead,NULL);
+		bSuccess = ReadFile(hPipeClient,szBuffer,sizeof(szBuffer),&dwBytesRead,&OVLRd);
+		strcpy(fullMesage, UserName);
+		strcat(fullMesage, ": ");
+		strcat(fullMesage, szBuffer);
 		//if request not correct(старое)
 		_tprintf(TEXT("bla1\n"));
 		if ((FALSE == bSuccess) ||(NULL == dwBytesRead))
@@ -176,12 +171,38 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 			}
 			break;//(ERROR_BROKEN_PIPE == GetLastError())(старое)
 		}//(!bSuccess || dwBytesRead == 0)(старое)
-		strcpy(fullMesage,UserName);
-		strcat(fullMesage, ": ");
-		strcat(fullMesage, szBuffer);
-		//bSuccess = WriteFile(hPipeClient,fullMesage,strlen(fullMesage) + 1,&dwBytesRead,NULL);(старое)
-		_tprintf(TEXT("%s\n"), fullMesage);
-	ReleaseMutex(hMutex);
+		ReleaseMutex(hMutex);
+//		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+//		{	
+		GetOverlappedResult(hPipeClient, &OVLRd, &BTR, FALSE);
+//			for (it = ThreadsId.begin(); it != ThreadsId.end(); it++) //проверка того, что у нас действительно сообщение от потока пришли, а не от чего-то другого
+//			if ((DWORD)msg.message == *it){
+				//сначала пишем во все пайпы все сообщения 
+				vector <int>::size_type size = ListOfUserNames.size();
+				for (unsigned int i = 0; i < size; i++)
+				{
+					_tprintf(TEXT("bla3\n"));
+					LPSTR NamePipeClient = new CHAR[255];
+					NamePipeClient = lpszPipename;
+					lstrcat(NamePipeClient, ListOfUserNames[i]);
+					HANDLE hPipeSystem = CreateFile((LPCSTR)NamePipeClient, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
+					bSuccess = WriteFile(hPipeSystem, (LPCVOID)fullMesage, sizeof(DWORD)+1, &dwBytesRead, NULL);
+					DeleteFile(NamePipeClient);
+					CloseHandle(hPipeSystem);
+				}
+				DWORD mistakefind;
+				DWORD iwantittobemythredId;
+				vector<DWORD>::iterator it;
+				for (it = ThreadsId.begin(); it != ThreadsId.end(); it++)
+				{
+					iwantittobemythredId = (DWORD) *it;
+					work = PostThreadMessage(iwantittobemythredId, I_MUST_READ_MY_PIPE, 0, (LPARAM)&cd);
+					mistakefind = GetLastError();
+				}
+//			}
+//		}
+	_tprintf(TEXT("%s\n"), fullMesage);
+	
 	}//while(старое)
 	FlushFileBuffers(hPipe);
 	FlushFileBuffers(hPipeClient);
