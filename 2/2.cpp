@@ -26,7 +26,8 @@ char fullMesage[255] = "";
 DWORD ThreadServerId;
 HANDLE hEvent;
 DWORD cbWritten;
-HANDLE g_hPipeChat = NULL;
+char NamePipeClient2[] = "\\\\.\\pipe\\MyPipeUser Name0";
+HANDLE g_hPipeChat;
 HANDLE g_hPipeSystem;
 HINSTANCE hInst;
 DWORD ThreadId;
@@ -39,6 +40,7 @@ char PipeNameChat[100];
 DWORD  ThreadServerIdChar[1];
 HANDLE ThreadForReading;
 HWND hWnd;
+HANDLE ReadingPipe;
 DWORD WINAPI ReadFunc(LPVOID lParam);
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
@@ -136,7 +138,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	   10, 45, 260, 25, hWnd, (HMENU)ID_STR_LINE_USER, hInstance, NULL);//имя юзера
    CreateWindow("BUTTON", "Send", WS_CHILD | WS_VISIBLE,
 	   280, 80, 80, 25, hWnd, (HMENU)ID_BTN_SEND, hInstance, NULL);//отправка сообщения
-   ThreadForReading = CreateThread(NULL, 0, ReadFunc,g_hPipeChat, 0, &ThreadId);
+   ThreadForReading = CreateThread(NULL, 0, ReadFunc, 0, 0, &ThreadId);
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
    return TRUE;
@@ -153,8 +155,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 DWORD WINAPI ReadFunc(LPVOID lParam)
 {
-	
-	HANDLE ClientRead = (HANDLE)lParam;
 	char BufferForClientMessage[256];
 	DWORD dwBytesRead;
 	bool bSuccess;
@@ -164,11 +164,15 @@ DWORD WINAPI ReadFunc(LPVOID lParam)
 	while (true)
 	{
 		//чтение из канала в клиенте
-		bSuccess = ReadFile(ClientRead, BufferForClientMessage, sizeof(BufferForClientMessage), &dwBytesRead, NULL);
+		if (ReadingPipe != INVALID_HANDLE_VALUE)
+		{
+			bSuccess = ReadFile(ReadingPipe, BufferForClientMessage, sizeof(BufferForClientMessage), &dwBytesRead, NULL);
+		}
+		
 		if (bSuccess)
 		{
-			SendMessage(hWnd, EM_EXSETSEL, 0, (LPARAM)&cr);
-			SendMessage(hWnd, EM_REPLACESEL, 0, (LPARAM)BufferForClientMessage);
+			SendMessage(hwndGetText, EM_EXSETSEL, 0, (LPARAM)&cr);
+			SendMessage(hwndGetText, EM_REPLACESEL, 0, (LPARAM)BufferForClientMessage);
 			_tprintf(TEXT("bla11111111111111111111111\n"));
 		}
 	}
@@ -183,7 +187,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	char UserName[50] = "";
 	char chatMessage[200] = "";
 	BOOL connected = FALSE;
-	DWORD mst;
+	DWORD mistakes;
+	char fuckup[100];
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -197,7 +202,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case ID_BTN_CONNECT_SERVER://подключение к каналу(старое)
 			if (connected)
 			{
-				DeleteFile(PipeNameChat);
 				CloseHandle(g_hPipeChat);
 				SetWindowText((HWND)lParam, "Connect");
 				break;
@@ -208,18 +212,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				g_hPipeSystem = CreateFile(PipeNameSystem, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
 				GetDlgItemText(hWnd, ID_STR_LINE_USER, UserName, 255);
 				WriteFile(g_hPipeSystem, UserName, strlen(UserName) + 1, &cbWritten,NULL);
+				
 				strcpy(PipeNameChat, PipeNameSystem);
-				strcat(PipeNameChat, UserName);		
-				mst = GetLastError();
+				strcat(PipeNameChat, UserName);	
+				
 				break;
 			}
 		case ID_BTN_SEND:
+			strcpy(fuckup, NamePipeClient1);
 			g_hPipeChat = CreateFile(PipeNameChat, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)(старое)
+			mistakes = GetLastError();
+			
+			ReadingPipe = CreateFile(NamePipeClient2, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
 			g_hEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, "NamedEvent");
 			GetDlgItemText(hWnd, ID_RICHEDITMESSEND, chatMessage, 255);
 			WriteFile(g_hPipeChat, chatMessage, strlen(chatMessage) + 1, &cbWritten, NULL);
 			SetEvent(g_hEvent);
-			DeleteFile(PipeNameChat);
+			CloseHandle(g_hPipeChat);
 			break;
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
@@ -234,10 +243,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		EndPaint(hWnd, &ps);
 		break;
 	case WM_DESTROY:
-		
-		DeleteFile(PipeNameSystem);
-		CloseHandle(g_hPipeSystem);
 		CloseHandle(g_hPipeChat);
+		CloseHandle(g_hPipeSystem);
 		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
