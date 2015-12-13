@@ -36,8 +36,8 @@ int _tmain(VOID)
 	BOOL flagPeekMsg = FALSE;
 	while (true)
 	{
-		hMutex = CreateMutex(NULL, FALSE, myMutex);
-		hEvent = CreateEvent(NULL, FALSE, FALSE, "NamedEvent");
+		hMutex = CreateMutex(NULL, FALSE, myMutex); //
+		hEvent = CreateEvent(NULL, FALSE, FALSE, "NamedEvent"); //
 		hPipe = CreateNamedPipe(lpszPipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, PIPE_UNLIMITED_INSTANCES | PIPE_NOWAIT, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE, 0,
 			NULL);
 		if (INVALID_HANDLE_VALUE == hPipe)
@@ -72,7 +72,7 @@ int _tmain(VOID)
 			}
 			MST = GetLastError();
 			_tprintf(TEXT("[SERVER] Client connected, creating a processing thread.\n"));
-			hThread = CreateThread(NULL,0,ThreadProc,(LPVOID)hPipe,0,&dwThreadId);
+			hThread = CreateThread(NULL,0,ThreadProc,(LPVOID)hPipe,0,&dwThreadId); //
 			if (NULL == hThread)
 			{
 				_tprintf(TEXT("[SERVER] CreateThread failed, Error %ld\n"),
@@ -171,7 +171,6 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 //		}
 //		}
 	_tprintf(TEXT("%s\n"), fullMesage);
-	
 	}//while(старое)
 	FlushFileBuffers(hPipe);
 	FlushFileBuffers(hPipeClient);
@@ -182,4 +181,4 @@ DWORD WINAPI ThreadProc(LPVOID lpvParam)
 	CloseHandle(hMutex);
 	_tprintf(TEXT("[ThreadProc] Exitting.1\n"));
 	return (DWORD) 1;
-}
+} //каждый киент к серверу создаёт по два пайпа 

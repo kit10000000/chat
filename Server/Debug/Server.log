@@ -1,5 +1,5 @@
-﻿Build started 13.12.2015 10:34:08.
-     1>Project "D:\github\chat\Server\Server.vcxproj" on node 2 (Build target(s)).
+﻿Build started 13.12.2015 11:14:21.
+     1>Project "D:\github\chat\Server\Server.vcxproj" on node 3 (Build target(s)).
      1>ClCompile:
          D:\VisualSt\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\Server.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Server.cpp
          Server.cpp
@@ -12,4 +12,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.18
+Time Elapsed 00:00:01.74
