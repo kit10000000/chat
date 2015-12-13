@@ -66,7 +66,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	}
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_MY2));
 	// Main message loop:
-	while (GetMessage(&msg, NULL, 0, 0)) //клиент считывает (!)
+	while (GetMessage(&msg, NULL, 0, 0)) //клиент считывает 
 	{
 		if (msg.message == I_MUST_READ_MY_PIPE)
 		{
@@ -110,7 +110,6 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
 	return RegisterClassEx(&wcex);
 }
-
 //
 //   FUNCTION: InitInstance(HINSTANCE, int)
 //
@@ -121,7 +120,6 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //        In this function, we save the instance handle in a global variable and
 //        create and display the main program window.
 //
-
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    HWND hWnd;
@@ -181,8 +179,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	char chatMessage[200] = "";
 	BOOL connected = FALSE;
 	DWORD mst;
-			hEventWrt = CreateEvent(NULL, TRUE, FALSE, NULL);
-			OVLwrt.hEvent = hEventWrt;
+	hEventWrt = CreateEvent(NULL, TRUE, FALSE, NULL);
+	OVLwrt.hEvent = hEventWrt;
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -204,16 +202,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			else 
 			{
 				BOOL bSuccess = FALSE;
-				// здесь если ставлю GENERIC_READ | GENERIC_WRITE прога начинает тупить хз(старое)
 				g_hPipeSystem = CreateFile(PipeNameSystem, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
 				while (bSuccess != TRUE)
 				{
-					bSuccess = ReadFile(g_hPipeSystem, (void*)ThreadServerIdChar, sizeof(ThreadServerIdChar), &dwBytesRead, NULL);//как только подключились к серверу, считываем айди его потока, чтобы мы могли ему отправить сообщение, что мы отправили сообщение в чат(старое)
+					bSuccess = ReadFile(g_hPipeSystem, (void*)ThreadServerIdChar, sizeof(ThreadServerIdChar), &dwBytesRead, NULL);
 					mst = GetLastError();
 				}
-//				ThreadServerId = (DWORD)ThreadServerIdChar;
 				DWORD CurrentThreadId = GetCurrentThreadId();
-				 PostThreadMessage((DWORD)ThreadServerIdChar[0], CurrentThreadId, 0, (LPARAM)&cd);//отправляю тут серверу id потока клиента, чтобы он мог добавить его в список всех айди потоков всех клиентов(старое)
+				 PostThreadMessage((DWORD)ThreadServerIdChar[0], CurrentThreadId, 0, (LPARAM)&cd);
 				mst = GetLastError();
 				if (g_hPipeSystem != INVALID_HANDLE_VALUE) // условие, если канал создан, то отображает дисконнект на кнопке(старое)
 				{
