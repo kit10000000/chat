@@ -1,0 +1,206 @@
+[33mcommit d731651af904df7b18edf63b4b6d1656c2ce4a7c[m
+Author: kit10000000 <ekaterina0196@yandex.ru>
+Date:   Thu Dec 10 23:04:51 2015 +0300
+
+    Revert ";"
+    
+    This reverts commit e18ee65ab84a2da05c17870ffb965bba33b2e935.
+
+[33mcommit e18ee65ab84a2da05c17870ffb965bba33b2e935[m
+Author: kit10000000 <ekaterina0196@yandex.ru>
+Date:   Thu Dec 10 23:04:39 2015 +0300
+
+    ;
+
+[33mcommit 22b57887f4033426d01cee8512ea1345bdc0a241[m
+Author: kit10000000 <ekaterina0196@yandex.ru>
+Date:   Thu Dec 10 22:56:45 2015 +0300
+
+    1
+    
+    1
+
+[33mcommit 5a3da0a95ef42fdd263e9e1c3fd4a6f5439a2e2b[m
+Author: kit10000000 <ekaterina0196@yandex.ru>
+Date:   Thu Dec 10 22:44:01 2015 +0300
+
+    1
+
+[33mcommit 540be78cfc560f0487592af3baf7222b6db6bcae[m
+Author: kit10000000 <ekaterina0196@yandex.ru>
+Date:   Thu Dec 10 22:40:09 2015 +0300
+
+    111
+
+[33mcommit 568b7218a56f3c14ed85b885aef34791678ae05d[m
+Author: kit10000000 <ekaterina0196@yandex.ru>
+Date:   Thu Dec 10 22:34:23 2015 +0300
+
+    -
+    
+    -
+
+[33mcommit c4772496ba8f167b3555a8093367887ff700414a[m
+Merge: b84fd91 42b777f
+Author: kit10000000 <ekaterina0196@yandex.ru>
+Date:   Thu Dec 10 21:50:18 2015 +0300
+
+    Merge remote-tracking branch 'origin/branch2' into branch2
+    
+    # Conflicts:
+    #	Server/Server.cpp
+    #	semestr's.sdf
+    #	semestr's.v12.suo
+
+[33mcommit b84fd91e5d1c00ab1045f12c493024bf7624b45c[m
+Author: kit10000000 <ekaterina0196@yandex.ru>
+Date:   Thu Dec 10 21:46:02 2015 +0300
+
+    1
+    
+    1
+
+[33mcommit 42b777f1b7326e77813542677a51ccd09f9ff6a4[m
+Author: TotallWAR <eershalaim@Gmail.com>
+Date:   Thu Dec 10 21:37:25 2015 +0300
+
+    потоки
+    
+    отправляю из клиента айди сервера
+    и сервер получает зайди клиента, записывая его в список
+
+[33mcommit fd9ea6c452deadffd8eb8e0bf7250b13dba7c6c7[m
+Author: TotallWAR <eershalaim@Gmail.com>
+Date:   Wed Dec 9 03:59:17 2015 +0300
+
+    some new
+
+[33mcommit 5106ad8a85109817d8c4216aa0d8746bf3fec839[m
+Author: TotallWAR <eershalaim@Gmail.com>
+Date:   Wed Dec 9 02:30:27 2015 +0300
+
+    changed architecture
+    
+    Messages.
+    But there is deadlock.
+
+[33mcommit 23c88080403f17db210de06efb486dd3ea31440e[m
+Merge: 5e99332 04b26f0
+Author: TotallWAR <eershalaim@Gmail.com>
+Date:   Sat Dec 5 10:28:13 2015 +0300
+
+    Merge branch 'branch1' into branch2
+    
+    # Conflicts:
+    #	2/Debug/2.log
+    #	2/Debug/2.obj
+    #	2/Debug/2.pch
+    #	2/Debug/2.tlog/2.lastbuildstate
+    #	2/Debug/2.tlog/cl.read.1.tlog
+    #	2/Debug/2.tlog/cl.write.1.tlog
+    #	2/Debug/2.tlog/link.read.1.tlog
+    #	2/Debug/2.tlog/link.write.1.tlog
+    #	2/Debug/2.tlog/rc.read.1.tlog
+    #	2/Debug/2.tlog/rc.write.1.tlog
+    #	2/Debug/stdafx.obj
+    #	2/Debug/vc120.idb
+    #	2/Debug/vc120.pdb
+    #	Debug/2.exe
+    #	Debug/2.ilk
+    #	Debug/2.pdb
+    #	Debug/Server.exe
+    #	Debug/Server.ilk
+    #	Debug/Server.pdb
+    #	Server/Debug/Server.log
+    #	Server/Debug/Server.obj
+    #	Server/Debug/Server.pch
+    #	Server/Debug/Server.tlog/Server.lastbuildstate
+    #	Server/Debug/Server.tlog/cl.read.1.tlog
+    #	Server/Debug/Server.tlog/cl.write.1.tlog
+    #	Server/Debug/Server.tlog/link.read.1.tlog
+    #	Server/Debug/Server.tlog/link.write.1.tlog
+    #	Server/Debug/stdafx.obj
+    #	Server/Debug/vc120.idb
+    #	Server/Debug/vc120.pdb
+    #	Server/Server.cpp
+    #	semestr's.sdf
+    #	semestr's.v12.suo
+
+[33mcommit 04b26f00daedb8afc59f4ba2dbc0fffb70019cba[m
+Author: kit10000000 <ekaterina0196@yandex.ru>
+Date:   Sat Dec 5 10:18:41 2015 +0300
+
+    change
+    
+    1) сделано считывание из клиента на сервер
+    2) виснет после того, как сервер считал
+
+[33mcommit 5e99332a0984c157d3442e5c42492ca477b0ecfc[m
+Author: TotallWAR <eershalaim@Gmail.com>
+Date:   Sat Dec 5 10:00:26 2015 +0300
+
+    compelled Commit
+
+[33mcommit b9c65855c4da5150242cbda91ae57c8204a9a64f[m
+Author: kit10000000 <ekaterina0196@yandex.ru>
+Date:   Sat Dec 5 01:30:44 2015 +0300
+
+    всё то же
+
+[33mcommit 8d758b716776722b06468f98c60d296d2f1be29b[m
+Author: kit10000000 <ekaterina0196@yandex.ru>
+Date:   Sat Dec 5 00:25:18 2015 +0300
+
+    Разборка с мьютексами
+    
+    1) добавила ивент
+    2) не считывает из клиентского канала
+
+[33mcommit 7356cbec33bcf01042ff4b0f26e408d0a53c6491[m
+Author: TotallWAR <eershalaim@Gmail.com>
+Date:   Wed Dec 2 17:11:29 2015 +0300
+
+    замена
+
+[33mcommit f3132289f08cb9f1f7003a9677754317549d60d7[m
+Author: TotallWAR <eershalaim@Gmail.com>
+Date:   Wed Dec 2 16:58:49 2015 +0300
+
+    непонятный коммит
+    
+    гит хочет, чтобы я добавил этот кормит О.о
+
+[33mcommit 94557cf255a98bd282fe6b1cdfc4d59ff64b7084[m
+Author: TotallWAR <eershalaim@Gmail.com>
+Date:   Wed Dec 2 16:58:13 2015 +0300
+
+    Скачал проект
+
+[33mcommit 106865db48f485d96aeb9f9848773beb1368e008[m
+Author: TotallWAR <eershalaim@Gmail.com>
+Date:   Tue Dec 1 14:15:38 2015 +0300
+
+    server is replaced
+    
+    I have replaced all code of server from your reference of example of
+    server
+
+[33mcommit 0fa93cbdc678e613b94ee40a3a641f5d754dd97e[m
+Author: kit10000000 <ekaterina0196@yandex.ru>
+Date:   Mon Nov 30 21:28:34 2015 +0300
+
+    1-st change
+    
+    Добавила создание  клиентского канала(не общего!!!)
+
+[33mcommit 950750d5977db06f1e7b3310cb5bf4d3bf0a44c1[m
+Author: kit10000000 <ekaterina0196@yandex.ru>
+Date:   Mon Nov 30 18:46:36 2015 +0300
+
+    add
+
+[33mcommit c2e4d23f3c17d101c88fb0d9e2477d85ddc7b829[m
+Author: kit10000000 <ekaterina0196@yandex.ru>
+Date:   Mon Nov 30 18:40:17 2015 +0300
+
+    :confetti_ball: Added .gitattributes & .gitignore files
