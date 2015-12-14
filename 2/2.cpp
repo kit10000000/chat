@@ -22,11 +22,12 @@
 using namespace std;
 // Global Variables:
 char PipeNameSystem [] = "\\\\.\\pipe\\MyPipe";
-char fullMesage[255] = "";
+
 DWORD ThreadServerId;
 HANDLE hEvent;
 DWORD cbWritten;
-char NamePipeClient2[] = "\\\\.\\pipe\\MyPipeUser Name0";
+char NamePipeClientIn[100];
+char NamePipeClientOut[100];
 HANDLE g_hPipeChat;
 HANDLE g_hPipeSystem;
 HINSTANCE hInst;
@@ -41,6 +42,7 @@ DWORD  ThreadServerIdChar[1];
 HANDLE ThreadForReading;
 HWND hWnd;
 HANDLE ReadingPipe;
+char UserName[50] = "";
 DWORD WINAPI ReadFunc(LPVOID lParam);
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
@@ -118,8 +120,6 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-   
-   DWORD MSTK;
    hInst = hInstance; // Store instance handle in our global variable
    hWnd = CreateWindow(szWindowClass, "client", WS_OVERLAPPEDWINDOW,
 	   CW_USEDEFAULT, 0, 460, 430, NULL, NULL, hInstance, NULL);
@@ -127,7 +127,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    CreateWindowEx(WS_EX_STATICEDGE,"RICHEDIT50W", TEXT("Type here"),
 	   ES_MULTILINE | WS_VISIBLE | WS_CHILD | WS_BORDER | WS_TABSTOP | CBS_AUTOHSCROLL,
 	   10, 80, 260, 120, hWnd, (HMENU)ID_RICHEDITMESSEND, hInstance, NULL); //поле ввода сообщений
-   hwndGetText = CreateWindowEx(WS_EX_STATICEDGE, "RICHEDIT50W", TEXT("Type here"),
+   hwndGetText = CreateWindowEx(WS_EX_STATICEDGE, "RICHEDIT50W", nullptr,
 	   ES_MULTILINE | WS_VISIBLE | WS_CHILD | WS_BORDER | WS_TABSTOP | CBS_AUTOHSCROLL,
 	   10, 210, 260, 150, hWnd, (HMENU)ID_RICHEDITMESGET, hInstance, NULL);//поле получения сообщений
    CreateWindow("BUTTON", "Connect to server", WS_CHILD | WS_VISIBLE,
@@ -173,7 +173,7 @@ DWORD WINAPI ReadFunc(LPVOID lParam)
 		{
 			SendMessage(hwndGetText, EM_EXSETSEL, 0, (LPARAM)&cr);
 			SendMessage(hwndGetText, EM_REPLACESEL, 0, (LPARAM)BufferForClientMessage);
-			_tprintf(TEXT("bla11111111111111111111111\n"));
+			SendMessage(hwndGetText, EM_REPLACESEL, 0, (LPARAM)"\n");
 		}
 	}
 }
@@ -184,11 +184,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	DWORD dwBytesRead;
 	HDC hdc;
-	char UserName[50] = "";
+	
 	char chatMessage[200] = "";
 	BOOL connected = FALSE;
 	DWORD mistakes;
 	char fuckup[100];
+	char fullMesage[255] = "";
 	switch (message)
 	{
 	case WM_COMMAND:
@@ -212,23 +213,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				g_hPipeSystem = CreateFile(PipeNameSystem, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
 				GetDlgItemText(hWnd, ID_STR_LINE_USER, UserName, 255);
 				WriteFile(g_hPipeSystem, UserName, strlen(UserName) + 1, &cbWritten,NULL);
+				strcpy(NamePipeClientIn, PipeNameSystem);
+				strcat(NamePipeClientIn, UserName);	
+				strcat(NamePipeClientIn, "_in");
+				strcpy(NamePipeClientOut, PipeNameSystem);
+				strcat(NamePipeClientOut, UserName);
+				strcat(NamePipeClientOut, "_out");
 				
-				strcpy(PipeNameChat, PipeNameSystem);
-				strcat(PipeNameChat, UserName);	
-				
-				break;
 			}
+			break;
 		case ID_BTN_SEND:
-			strcpy(fuckup, NamePipeClient1);
-			g_hPipeChat = CreateFile(PipeNameChat, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)(старое)
+//			DebugBreak();
+			if (g_hPipeChat == nullptr)
+				g_hPipeChat = CreateFile(NamePipeClientIn, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)(старое)
+			if (ReadingPipe == nullptr)
+			ReadingPipe = CreateFile(NamePipeClientOut, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
 			mistakes = GetLastError();
-			
-			ReadingPipe = CreateFile(NamePipeClient2, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
 			g_hEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, "NamedEvent");
 			GetDlgItemText(hWnd, ID_RICHEDITMESSEND, chatMessage, 255);
-			WriteFile(g_hPipeChat, chatMessage, strlen(chatMessage) + 1, &cbWritten, NULL);
+			strcpy(fullMesage, UserName);
+			strcat(fullMesage, ": ");
+			strcat(fullMesage, chatMessage);
+			WriteFile(g_hPipeChat, fullMesage, strlen(fullMesage) + 1, &cbWritten, NULL);
 			SetEvent(g_hEvent);
-			CloseHandle(g_hPipeChat);
 			break;
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
