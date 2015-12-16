@@ -22,27 +22,19 @@
 using namespace std;
 // Global Variables:
 char PipeNameSystem [] = "\\\\.\\pipe\\MyPipe";
-
-DWORD ThreadServerId;
-HANDLE hEvent;
-DWORD cbWritten;
 char NamePipeClientIn[100];
 char NamePipeClientOut[100];
-HANDLE g_hPipeChat = INVALID_HANDLE_VALUE;
-HANDLE g_hPipeSystem;
 HINSTANCE hInst;
-DWORD ThreadId;
-HWND hwndGetText;						// current instance
+DWORD ThreadId;					
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
-HANDLE g_hEvent;
-char PipeName[100]; //переменная для создания канала, считывает из поля имя канала
-char PipeNameChat[100];
-DWORD  ThreadServerIdChar[1];
 HANDLE ThreadForReading;
 HWND hWnd;
-HANDLE ReadingPipe = INVALID_HANDLE_VALUE;
+HWND hwndGetText; 
 char UserName[50] = "";
+HANDLE g_hPipeChat = INVALID_HANDLE_VALUE;
+HANDLE g_hPipeSystem = INVALID_HANDLE_VALUE;
+HANDLE ReadingPipe = INVALID_HANDLE_VALUE;
 DWORD WINAPI ReadFunc(LPVOID lParam);
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
@@ -180,6 +172,7 @@ DWORD WINAPI ReadFunc(LPVOID lParam)
 }
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	DWORD cbWritten;
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
 	HDC hdc;
@@ -188,69 +181,72 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	char fullMesage[255] = "";
 	switch (message)
 	{
-	case WM_COMMAND:
-		wmId    = LOWORD(wParam);
-		wmEvent = HIWORD(wParam);
-		COPYDATASTRUCT cd;
-		BOOL work;
-		// Parse the menu selections:
-		switch (wmId)
-		{
-		case ID_BTN_CONNECT_SERVER://подключение к каналу(старое)
-			if (connected)
+		case WM_COMMAND:
+			wmId    = LOWORD(wParam);
+			wmEvent = HIWORD(wParam);
+			COPYDATASTRUCT cd;
+			DWORD work;
+			// Parse the menu selections:
+			switch (wmId)
 			{
-				CloseHandle(g_hPipeChat);
-				SetWindowText((HWND)lParam, "Connect");
+			case ID_BTN_CONNECT_SERVER://подключение к каналу(старое)
+				if (connected)
+				{
+					CloseHandle(g_hPipeChat);
+					SetWindowText((HWND)lParam, "Connect");
+					break;
+				}
+					g_hPipeSystem = CreateFile(PipeNameSystem, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
+					GetDlgItemText(hWnd, ID_STR_LINE_USER, UserName, 255);
+					WriteFile(g_hPipeSystem, UserName, strlen(UserName) + 1, &cbWritten,NULL);
+					strcpy(NamePipeClientIn, PipeNameSystem);
+					strcat(NamePipeClientIn, UserName);	
+					strcat(NamePipeClientIn, "_in");
+					strcpy(NamePipeClientOut, PipeNameSystem);
+					strcat(NamePipeClientOut, UserName);
+					strcat(NamePipeClientOut, "_out");
+					Sleep(1000); //Задержка, чтобы на сервере успел создаться ReadingPipe
+					if (ReadingPipe == INVALID_HANDLE_VALUE)//взываем к считывающему каналу
+						ReadingPipe = CreateFile(NamePipeClientOut, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
+					work = GetLastError();
 				break;
-			}
-			else 
-			{
-				BOOL bSuccess = FALSE;
-				g_hPipeSystem = CreateFile(PipeNameSystem, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
-				GetDlgItemText(hWnd, ID_STR_LINE_USER, UserName, 255);
-				WriteFile(g_hPipeSystem, UserName, strlen(UserName) + 1, &cbWritten,NULL);
-				strcpy(NamePipeClientIn, PipeNameSystem);
-				strcat(NamePipeClientIn, UserName);	
-				strcat(NamePipeClientIn, "_in");
-				strcpy(NamePipeClientOut, PipeNameSystem);
-				strcat(NamePipeClientOut, UserName);
-				strcat(NamePipeClientOut, "_out");
-				
+			case ID_BTN_SEND:
+				if (g_hPipeChat == INVALID_HANDLE_VALUE)
+					g_hPipeChat = CreateFile(NamePipeClientIn, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)(старое)
+				GetDlgItemText(hWnd, ID_RICHEDITMESSEND, chatMessage, 255);
+				strcpy(fullMesage, UserName); //формируем сообщение
+				strcat(fullMesage, ": ");
+				strcat(fullMesage, chatMessage);
+				WriteFile(g_hPipeChat, fullMesage, strlen(fullMesage) + 1, &cbWritten, NULL);//отправляем в канал для записи
+				break;
+			case IDM_EXIT:
+				FlushFileBuffers(g_hPipeChat);
+				DisconnectNamedPipe(g_hPipeChat);
+				CloseHandle(g_hPipeChat);
+				FlushFileBuffers(g_hPipeSystem);
+				DisconnectNamedPipe(g_hPipeSystem);
+				CloseHandle(g_hPipeSystem);
+				DestroyWindow(hWnd);
+				break;
+			default:
+				return DefWindowProc(hWnd, message, wParam, lParam);
 			}
 			break;
-		case ID_BTN_SEND:
-//			DebugBreak();
-			if (g_hPipeChat == INVALID_HANDLE_VALUE)
-				g_hPipeChat = CreateFile(NamePipeClientIn, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)(старое)
-			if (ReadingPipe == INVALID_HANDLE_VALUE)
-				ReadingPipe = CreateFile(NamePipeClientOut, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
-			g_hEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, "NamedEvent");
-			GetDlgItemText(hWnd, ID_RICHEDITMESSEND, chatMessage, 255);
-			strcpy(fullMesage, UserName);
-			strcat(fullMesage, ": ");
-			strcat(fullMesage, chatMessage);
-			WriteFile(g_hPipeChat, fullMesage, strlen(fullMesage) + 1, &cbWritten, NULL);
+		case WM_PAINT:
+			hdc = BeginPaint(hWnd, &ps);
+			// TODO: Add any drawing code here...(старое)
+			EndPaint(hWnd, &ps);
 			break;
-		case IDM_EXIT:
+		case WM_DESTROY:
+			FlushFileBuffers(g_hPipeChat);
+			DisconnectNamedPipe(g_hPipeChat);
 			CloseHandle(g_hPipeChat);
+			FlushFileBuffers(g_hPipeSystem);
+			DisconnectNamedPipe(g_hPipeSystem);
 			CloseHandle(g_hPipeSystem);
-			DestroyWindow(hWnd);
 			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
-		}
-		break;
-	case WM_PAINT:
-		hdc = BeginPaint(hWnd, &ps);
-		// TODO: Add any drawing code here...(старое)
-		EndPaint(hWnd, &ps);
-		break;
-	case WM_DESTROY:
-		CloseHandle(g_hPipeChat);
-		CloseHandle(g_hPipeSystem);
-		break;
-	default:
-		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 	return 0;
 }

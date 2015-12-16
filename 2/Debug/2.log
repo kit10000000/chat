@@ -1,11 +1,10 @@
-﻿Build started 14.12.2015 23:23:39.
+﻿Build started 17.12.2015 2:51:19.
      1>Project "D:\github\chat\2\2.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          D:\VisualSt\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\2.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt 2.cpp
          2.cpp
-     1>d:\github\chat\2\2.cpp(170): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
-     1>d:\github\chat\2\2.cpp(194): warning C4101: 'cd' : unreferenced local variable
-     1>d:\github\chat\2\2.cpp(195): warning C4101: 'work' : unreferenced local variable
+     1>d:\github\chat\2\2.cpp(162): warning C4800: 'BOOL' : forcing value to bool 'true' or 'false' (performance warning)
+     1>d:\github\chat\2\2.cpp(187): warning C4101: 'cd' : unreferenced local variable
        Link:
          D:\VisualSt\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\github\chat\Debug\2.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\github\chat\Debug\2.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\github\chat\Debug\2.lib" /MACHINE:X86 Debug\2.res
          Debug\2.obj
@@ -15,4 +14,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:17.43
+Time Elapsed 00:00:04.56
