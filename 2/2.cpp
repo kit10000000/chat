@@ -28,7 +28,7 @@ HANDLE hEvent;
 DWORD cbWritten;
 char NamePipeClientIn[100];
 char NamePipeClientOut[100];
-HANDLE g_hPipeChat;
+HANDLE g_hPipeChat = INVALID_HANDLE_VALUE;
 HANDLE g_hPipeSystem;
 HINSTANCE hInst;
 DWORD ThreadId;
@@ -41,7 +41,7 @@ char PipeNameChat[100];
 DWORD  ThreadServerIdChar[1];
 HANDLE ThreadForReading;
 HWND hWnd;
-HANDLE ReadingPipe;
+HANDLE ReadingPipe = INVALID_HANDLE_VALUE;
 char UserName[50] = "";
 DWORD WINAPI ReadFunc(LPVOID lParam);
 // Forward declarations of functions included in this code module:
@@ -163,6 +163,7 @@ DWORD WINAPI ReadFunc(LPVOID lParam)
 	cr.cpMax = -1;
 	while (true)
 	{
+		bSuccess = FALSE;
 		//чтение из канала в клиенте
 		if (ReadingPipe != INVALID_HANDLE_VALUE)
 		{
@@ -179,16 +180,11 @@ DWORD WINAPI ReadFunc(LPVOID lParam)
 }
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	DWORD ThreadId;
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
-	DWORD dwBytesRead;
 	HDC hdc;
-	
 	char chatMessage[200] = "";
 	BOOL connected = FALSE;
-	DWORD mistakes;
-	char fuckup[100];
 	char fullMesage[255] = "";
 	switch (message)
 	{
@@ -224,20 +220,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		case ID_BTN_SEND:
 //			DebugBreak();
-			if (g_hPipeChat == nullptr)
+			if (g_hPipeChat == INVALID_HANDLE_VALUE)
 				g_hPipeChat = CreateFile(NamePipeClientIn, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)(старое)
-			if (ReadingPipe == nullptr)
-			ReadingPipe = CreateFile(NamePipeClientOut, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
-			mistakes = GetLastError();
+			if (ReadingPipe == INVALID_HANDLE_VALUE)
+				ReadingPipe = CreateFile(NamePipeClientOut, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
 			g_hEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, "NamedEvent");
 			GetDlgItemText(hWnd, ID_RICHEDITMESSEND, chatMessage, 255);
 			strcpy(fullMesage, UserName);
 			strcat(fullMesage, ": ");
 			strcat(fullMesage, chatMessage);
 			WriteFile(g_hPipeChat, fullMesage, strlen(fullMesage) + 1, &cbWritten, NULL);
-			SetEvent(g_hEvent);
 			break;
 		case IDM_EXIT:
+			CloseHandle(g_hPipeChat);
+			CloseHandle(g_hPipeSystem);
 			DestroyWindow(hWnd);
 			break;
 		default:

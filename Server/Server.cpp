@@ -9,7 +9,6 @@
 #pragma warning(disable : 4996)
 using namespace std;
 LPTSTR lpszPipename = TEXT("\\\\.\\pipe\\MyPipe");
-HANDLE hPipeClient;
 
 DWORD BTR;
 HANDLE hPipe;
@@ -17,17 +16,19 @@ HANDLE hThread = NULL;
 BOOL bConnected = FALSE;
 DWORD dwThreadId = NULL;
 DWORD dwBytesRead;
-
 COPYDATASTRUCT cd;
 HANDLE hEvent;
 HANDLE CollectAllNamedPipes[100];
 DWORD ThreadId;
 int i;
-HANDLE ReadingPipe;
+
 DWORD WINAPI ClientProc(LPVOID lParam)
 {
+	HANDLE hPipeClient=INVALID_HANDLE_VALUE;
+	HANDLE ReadingPipe=INVALID_HANDLE_VALUE;
 	while (true)
 	{
+
 		DWORD mistake;
 		BOOL bSuccess;
 		char NamePipeClientIn[100];
@@ -38,14 +39,14 @@ DWORD WINAPI ClientProc(LPVOID lParam)
 		strcpy(NamePipeClientIn, lpszPipename);
 		strcat(NamePipeClientIn, UserName1);
 		strcat(NamePipeClientIn, "_in");
-		if (hPipeClient==nullptr)
-			hPipeClient = CreateNamedPipe(NamePipeClientIn, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT, PIPE_UNLIMITED_INSTANCES, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE, 0, NULL);
+		if (hPipeClient==INVALID_HANDLE_VALUE)
+			hPipeClient = CreateNamedPipe(NamePipeClientIn, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE, 0, NULL);
 		strcpy(NamePipeClientOut, lpszPipename);
 		strcat(NamePipeClientOut, UserName1);
 		strcat(NamePipeClientOut, "_out");
-		if (ReadingPipe == nullptr)
+		if (ReadingPipe == INVALID_HANDLE_VALUE)
 		{
-			ReadingPipe = CreateNamedPipe(NamePipeClientOut, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT, PIPE_UNLIMITED_INSTANCES, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE, 0, NULL);
+			ReadingPipe = CreateNamedPipe(NamePipeClientOut, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE, 0, NULL);
 			mistake = GetLastError();
 			CollectAllNamedPipes[i] = ReadingPipe;
 			i++;
@@ -53,11 +54,7 @@ DWORD WINAPI ClientProc(LPVOID lParam)
 		bSuccess = ConnectNamedPipe(hPipeClient, NULL);
 		if (bSuccess)
 			_tprintf(TEXT("[ClientProc] Client is connected and ready for reading.\n"));
-		WaitForSingleObject(hEvent, INFINITE);
 		bSuccess = ReadFile(hPipeClient, szBuffer, sizeof(szBuffer), &dwBytesRead, NULL);//чтение сообщения из клиента
-//		strcpy(fullMesage, UserName1);
-//		strcat(fullMesage, ": ");
-//		strcat(fullMesage, szBuffer);
 		if ((FALSE == bSuccess) || (NULL == dwBytesRead))
 		{
 			if (ERROR_BROKEN_PIPE == GetLastError())
