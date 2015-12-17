@@ -1,14 +1,16 @@
-ï»¿Build started 17.12.2015 2:51:19.
-     1>Project "D:\github\chat\Server\Server.vcxproj" on node 3 (Build target(s)).
-     1>ClCompile:
-         D:\VisualSt\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\Server.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Server.cpp
-         Server.cpp
-       Link:
-         D:\VisualSt\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\github\chat\Debug\Server.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\github\chat\Debug\Server.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\github\chat\Debug\Server.lib" /MACHINE:X86 Debug\Server.obj
-         Debug\stdafx.obj
-         Server.vcxproj -> D:\github\chat\Debug\Server.exe
-     1>Done Building Project "D:\github\chat\Server\Server.vcxproj" (Build target(s)).
-
-Build succeeded.
-
-Time Elapsed 00:00:04.52
+ÿþ»ïB¿iudls attrde1 .8211. 5:2011:.0
+    1 P>orejtc" \\aM\coHemD\setkpop\orrgmaimgnc\++r\aeclah\thctaS\reev\reSvrrev.xcrpjo "non do e 2B(iudlt raeg(t)s.)
+    1 C>Clmoipel: 
+        :CP\orrgmaF lise( 8x)6M\ciorostfV siau ltSduoi1 .2\0CVb\niC\.Lxe ec// IZ/ onolog/ 3W/ XW -s/ld/ dO/ yO -D/W NI23/  DD_BEGU/  DC_NOOSEL/  DL_BI/  DM_CB SG/ mE/sH cR/CT 1M/dD/ SG/ pfp:erices/ cZw:hcrat_/ cZf:rocSpo eY/"utsadxfh. "F/"peDub\geSvrrep.hc "F/"oeDub\g"\/ dFD"beguv\1c02p.bd "G/ dT/ Pa/anylez -e/rrroeRoptrp:orpm teSvrrec.pp
+        S reev.rpcp 
+    >1\\am\cohemd\setkpop\orrgmaimgnc\++r\aeclah\thctas\reev\resvrrec.pp9()6 :awnrni g4C01:1' aNemiPepoFCrehkc ' :nuerefercndel colav raailbe 
+    >1\\am\cohemd\setkpop\orrgmaimgnc\++r\aeclah\thctas\reev\resvrrec.pp9()5 :awnrni g4C01:1' hcceHhnald'e: u rnfereneec dolac lavirbael
+      L ni:k
+        C \:rPgoar miFel sx(68\)iMrcsofo tiVuslaS utid o210.V\\Cib\nilkne.ex/ REORRRPERO:TRPMOTP/ UO:T\"M\caH\mo\eeDksot\prpgoarmmni\g+c\+erlahctac\ah\teDub\geSvrree.ex "I/CNEREMTNLA/ ONOLOGk reen3l.2il bsure23l.big id23l.biw nipsoo.lil bocdmgl23l.bia vdpa3i.2il bhsle3l.2il blo3e.2il bloaetu23l.biu iu.dil bdocb23l.bio bdcc3p.2il bM/NAFISE TM/NAFISEUTCA":elev=la'Isvnkore 'iucAecss'=afsl'e "m/nafise:tmeeb dD/BEGU/ DP:B\"M\caH\mo\eeDksot\prpgoarmmni\g+c\+erlahctac\ah\teDub\geSvrrep.bd "S/BUYSTSMEC:NOOSEL/ LTIB:D 1D/NYMACIABES/ XNOCPMTA/ MILPBI":\\aM\coHemD\setkpop\orrgmaimgnc\++r\aeclah\thctaD\beguS\reev.ril"b/ AMHCNI:E8X 6eDub\geSvrreo.jb
+        D begus\dtfa.xboj 
+        eSvrrev.xcrpjo-  >\\aM\coHemD\setkpop\orrgmaimgnc\++r\aeclah\thctaD\beguS\reev.rxee 
+    >1oDenB iudlni grPjoce t\"M\caH\mo\eeDksot\prpgoarmmni\g+c\+erlahctac\ah\teSvrreS\reev.rcvpxor"j( uBli datgrtes()).
+B
+iudls cuecdede.
+T
+mi elEpaes d000::0202.6

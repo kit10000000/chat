@@ -4,11 +4,14 @@
 #include <stdio.h> 
 #include <tchar.h>
 #define MAX_BUFFER_SIZE 512
+#define IM_DISCONNECTING_MAFUCK 1122
 #pragma warning(disable : 4996)
 using namespace std;
 LPTSTR lpszPipename = TEXT("\\\\.\\pipe\\MyPipe");
 HANDLE CollectAllNamedPipes[100];
+int CollectionAllThreadsIdClient[100];
 int i;
+int j;
 DWORD WINAPI ClientProc(LPVOID lParam)
 {
 	HANDLE hPipeClient=INVALID_HANDLE_VALUE;
@@ -19,27 +22,32 @@ DWORD WINAPI ClientProc(LPVOID lParam)
 	char NamePipeClientOut[100];
 	char szBuffer[100] = "";
 	char *UserName1 = (char *)lParam;
+
+	strcpy(NamePipeClientIn, lpszPipename); //формируем имя канала для получения сообщений от клиента(считываем из него)
+	strcat(NamePipeClientIn, UserName1);
+	strcat(NamePipeClientIn, "_in");
+	if (hPipeClient == INVALID_HANDLE_VALUE)
+		hPipeClient = CreateNamedPipe(NamePipeClientIn, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE, 0, NULL);
+	strcpy(NamePipeClientOut, lpszPipename);//формируем имя канала для отправки сообщений клиенту(в него записываем)
+	strcat(NamePipeClientOut, UserName1);
+	strcat(NamePipeClientOut, "_out");
+	if (ReadingPipeServer == INVALID_HANDLE_VALUE) // если канала еще нет, условие ставится чтобы канал не перезаписывался(у нас бесконечный while)
+	{
+		ReadingPipeServer = CreateNamedPipe(NamePipeClientOut, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE, 0, NULL);
+		CollectAllNamedPipes[i] = ReadingPipeServer;
+		i++;
+	}
+	bSuccess = ConnectNamedPipe(hPipeClient, NULL);
+	if (bSuccess)
+		_tprintf(TEXT("[ClientProc] Client is connected and ready for reading.\n"));
+
+
 	while (true)
 	{
-		strcpy(NamePipeClientIn, lpszPipename); //формируем имя канала для получения сообщений от клиента(считываем из него)
-		strcat(NamePipeClientIn, UserName1);
-		strcat(NamePipeClientIn, "_in");
-		if (hPipeClient == INVALID_HANDLE_VALUE)
-			hPipeClient = CreateNamedPipe(NamePipeClientIn, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE, 0, NULL);
-		strcpy(NamePipeClientOut, lpszPipename);//формируем имя канала для отправки сообщений клиенту(в него записываем)
-		strcat(NamePipeClientOut, UserName1);
-		strcat(NamePipeClientOut, "_out");
-		if (ReadingPipeServer == INVALID_HANDLE_VALUE) // если канала еще нет, условие ставится чтобы канал не перезаписывался(у нас бесконечный while)
-		{
-			ReadingPipeServer = CreateNamedPipe(NamePipeClientOut, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE, 0, NULL);
-			CollectAllNamedPipes[i] = ReadingPipeServer;
-			i++;
-		}
-		bSuccess = ConnectNamedPipe(hPipeClient, NULL);
-		if (bSuccess)
-			_tprintf(TEXT("[ClientProc] Client is connected and ready for reading.\n"));
+		bSuccess = FALSE;
+		
 		bSuccess = ReadFile(hPipeClient, szBuffer, sizeof(szBuffer), &dwBytesRead, NULL);//чтение сообщения из клиента
-		if ((FALSE == bSuccess) || (NULL == dwBytesRead))
+		/*if ((FALSE == bSuccess) || (NULL == dwBytesRead))
 		{
 			if (ERROR_BROKEN_PIPE == GetLastError())
 			{
@@ -52,16 +60,20 @@ DWORD WINAPI ClientProc(LPVOID lParam)
 					GetLastError());
 				break;
 			}
-		}
-		for (int c = 0; c < i; c++)//идём по списку и отправляем
+		}*/
+		if (bSuccess)
 		{
-			bSuccess = WriteFile(CollectAllNamedPipes[c], szBuffer, sizeof(szBuffer)+1, &dwBytesRead, NULL);
-			if (!bSuccess)
+			for (int c = 0; c < i; c++)//идём по списку и отправляем
 			{
-				_tprintf(TEXT("[ClientProc] WriteFile failed, GLE=%d.\n"), GetLastError());
-				break;
+				bSuccess = WriteFile(CollectAllNamedPipes[c], szBuffer, sizeof(szBuffer) + 1, &dwBytesRead, NULL);
+				if (!bSuccess)
+				{
+					_tprintf(TEXT("[ClientProc] WriteFile failed, GLE=%d.\n"), GetLastError());
+					break;
+				}
 			}
 		}
+		
 	}
 	FlushFileBuffers(hPipeClient);
 	DisconnectNamedPipe(hPipeClient);
@@ -79,12 +91,17 @@ int _tmain(VOID)
 	HANDLE hPipe=INVALID_HANDLE_VALUE;
 	HANDLE hThread = NULL;
 	DWORD dwBytesRead = 0;
+	BOOL  isThereFlag = FALSE;// ДЛЯ ПРОВЕРКИ НА ТО, ЕСТЬ ЛИ УЖЕ КЛИЕНТ С ТАКИМ ИМЕНЕМ
+	HANDLE chechHandle;
+	char NamePipeForCheck[100];
 	 i = 0;
+	 j = 0;
 	while (true)
 	{
-		
+		isThereFlag = FALSE;
 		hPipe = CreateNamedPipe(lpszPipename, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, PIPE_UNLIMITED_INSTANCES | PIPE_NOWAIT, MAX_BUFFER_SIZE, MAX_BUFFER_SIZE, 0,
 			NULL);
+		/*
 		if (INVALID_HANDLE_VALUE == hPipe)
 		{
 			switch (GetLastError())
@@ -97,7 +114,7 @@ int _tmain(VOID)
 					GetLastError());
 				return -1;
 			}
-		}
+		}*/
 		_tprintf(TEXT("[SERVER] Waiting for client connection to the Server pipe...\n"));
 		bConnected = ConnectNamedPipe(hPipe, NULL);
 		if (bConnected)
@@ -106,7 +123,26 @@ int _tmain(VOID)
 			_tprintf(TEXT("[SERVER] Server pipe is ready for reading messages.\n"));
 			if (ReadFile(hPipe, UserName, sizeof(UserName), &dwBytesRead, NULL))
 			{
-				hThread = CreateThread(NULL, 0, ClientProc, UserName, 0, &ThreadId);
+				for (int k = 0; k < j; k++)
+				{
+					if (CollectionAllThreadsIdClient[k] == atoi(UserName)){
+						isThereFlag = TRUE;
+						for (int h = k; h < j-1; h++)
+						{
+							CollectionAllThreadsIdClient[h] = CollectionAllThreadsIdClient[h + 1];
+						}
+						CollectionAllThreadsIdClient[j] = 0;
+						break;
+					}
+				}
+				
+				if (!isThereFlag)//то есть если такого юзера нет, то запускаем еще поток
+				{
+					CollectionAllThreadsIdClient[j] = atoi(UserName);
+					j++;
+					hThread = CreateThread(NULL, 0, ClientProc, UserName, 0, &ThreadId);
+				}
+				
 				_tprintf(TEXT("[SERVER] Thread for the client %s created.\n"), UserName);
 				if (hThread == NULL)
 				{

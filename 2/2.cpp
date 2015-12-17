@@ -26,10 +26,12 @@ char NamePipeClientIn[100];
 char NamePipeClientOut[100];
 HINSTANCE hInst;
 DWORD ThreadId;					
+HANDLE g_hPipeSystemDubl = INVALID_HANDLE_VALUE;
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 HANDLE ThreadForReading;
 HWND hWnd;
+BOOL connected = FALSE;
 HWND hwndGetText; 
 char UserName[50] = "";
 HANDLE g_hPipeChat = INVALID_HANDLE_VALUE;
@@ -175,9 +177,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	DWORD cbWritten;
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
+	BOOL bSuccess = FALSE;
+	TCHAR threadId[50] = "";
 	HDC hdc;
+	DWORD ID;
 	char chatMessage[200] = "";
-	BOOL connected = FALSE;
+	
 	char fullMesage[255] = "";
 	switch (message)
 	{
@@ -190,39 +195,66 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			switch (wmId)
 			{
 			case ID_BTN_CONNECT_SERVER://подключение к каналу(старое)
+				//посмотреть условие connect
 				if (connected)
 				{
-					CloseHandle(g_hPipeChat);
+					ID = GetCurrentThreadId();
+					itoa(ID, threadId, 10);
+					WriteFile(g_hPipeSystem, threadId, strlen(UserName) + 1, &cbWritten, NULL);
+					connected = FALSE;
+					//CloseHandle(g_hPipeChat);
+					g_hPipeSystem = INVALID_HANDLE_VALUE;
 					SetWindowText((HWND)lParam, "Connect");
 					break;
 				}
-					g_hPipeSystem = CreateFile(PipeNameSystem, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
+				if (g_hPipeSystemDubl == INVALID_HANDLE_VALUE)//ТО ЕСТЬ ЕСЛИ МЫ В САМЫЙ ПЕРВЫЙ РАЗ ПОДКЛЮЧАЛИСЬ, СЮДА ЗАШЛИ
+					{
+						g_hPipeSystem = CreateFile(PipeNameSystem, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
+						g_hPipeSystemDubl = g_hPipeSystem;//ДУБЛИКАТ HANDLE ЧТОБЫ МОГЛИ ЗАНОВО ПОДСОЕДИНИТЬСЯ
+
+					}
+					g_hPipeSystem = g_hPipeSystemDubl;//это если переподключаемся
 					GetDlgItemText(hWnd, ID_STR_LINE_USER, UserName, 255);
-					WriteFile(g_hPipeSystem, UserName, strlen(UserName) + 1, &cbWritten,NULL);
+					if (g_hPipeSystem != INVALID_HANDLE_VALUE) // условие, если канал создан, то отображает дисконнект на кнопке(старое)
+					{
+						SetWindowText((HWND)lParam, "Disconnect");
+						connected = TRUE;
+					}
+					ID = GetCurrentThreadId();
+					itoa(ID, threadId, 10);
+					WriteFile(g_hPipeSystem, threadId, strlen(threadId) + 1, &cbWritten, NULL);
 					strcpy(NamePipeClientIn, PipeNameSystem);
-					strcat(NamePipeClientIn, UserName);	
+					strcat(NamePipeClientIn, threadId);
 					strcat(NamePipeClientIn, "_in");
 					strcpy(NamePipeClientOut, PipeNameSystem);
-					strcat(NamePipeClientOut, UserName);
+					strcat(NamePipeClientOut, threadId);
 					strcat(NamePipeClientOut, "_out");
 					Sleep(1000); //Задержка, чтобы на сервере успел создаться ReadingPipe
 					if (ReadingPipe == INVALID_HANDLE_VALUE)//взываем к считывающему каналу
 						ReadingPipe = CreateFile(NamePipeClientOut, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);
+
+					
+
 					work = GetLastError();
 				break;
 			case ID_BTN_SEND:
-				if (g_hPipeChat == INVALID_HANDLE_VALUE)
-					g_hPipeChat = CreateFile(NamePipeClientIn, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)(старое)
-				GetDlgItemText(hWnd, ID_RICHEDITMESSEND, chatMessage, 255);
-				strcpy(fullMesage, UserName); //формируем сообщение
-				strcat(fullMesage, ": ");
-				strcat(fullMesage, chatMessage);
-				WriteFile(g_hPipeChat, fullMesage, strlen(fullMesage) + 1, &cbWritten, NULL);//отправляем в канал для записи
+				if (connected)
+				{
+					if (g_hPipeChat == INVALID_HANDLE_VALUE)
+						g_hPipeChat = CreateFile(NamePipeClientIn, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL); //проверить(!)(старое)
+					GetDlgItemText(hWnd, ID_RICHEDITMESSEND, chatMessage, 255);
+					strcpy(fullMesage, UserName); //формируем сообщение
+					strcat(fullMesage, ": ");
+					strcat(fullMesage, chatMessage);
+					WriteFile(g_hPipeChat, fullMesage, strlen(fullMesage) + 1, &cbWritten, NULL);//отправляем в канал для записи
+				}
 				break;
 			case IDM_EXIT:
 				FlushFileBuffers(g_hPipeChat);
 				DisconnectNamedPipe(g_hPipeChat);
 				CloseHandle(g_hPipeChat);
+				CloseHandle(g_hPipeSystemDubl);
+				FlushFileBuffers(g_hPipeSystemDubl);
 				FlushFileBuffers(g_hPipeSystem);
 				DisconnectNamedPipe(g_hPipeSystem);
 				CloseHandle(g_hPipeSystem);
