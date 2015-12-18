@@ -22,7 +22,6 @@ DWORD WINAPI ClientProc(LPVOID lParam)
 	char NamePipeClientOut[100];
 	char szBuffer[100] = "";
 	char *UserName1 = (char *)lParam;
-
 	strcpy(NamePipeClientIn, lpszPipename); //формируем имя канала для получения сообщений от клиента(считываем из него)
 	strcat(NamePipeClientIn, UserName1);
 	strcat(NamePipeClientIn, "_in");
@@ -40,26 +39,12 @@ DWORD WINAPI ClientProc(LPVOID lParam)
 	bSuccess = ConnectNamedPipe(hPipeClient, NULL);
 	if (bSuccess)
 		_tprintf(TEXT("[ClientProc] Client is connected and ready for reading.\n"));
-
-
 	while (true)
 	{
 		bSuccess = FALSE;
-		
 		bSuccess = ReadFile(hPipeClient, szBuffer, sizeof(szBuffer), &dwBytesRead, NULL);//чтение сообщения из клиента
 		/*if ((FALSE == bSuccess) || (NULL == dwBytesRead))
-		{
-			if (ERROR_BROKEN_PIPE == GetLastError())
-			{
-				_tprintf(TEXT("[ClientProc] Client disconnected.\n"));
-				break;
-			}
-			else
-			{
-				_tprintf(TEXT("[ClientProc] ReadFile failed, Error %ld.\n"),
-					GetLastError());
-				break;
-			}
+		{		
 		}*/
 		if (bSuccess)
 		{
@@ -73,7 +58,20 @@ DWORD WINAPI ClientProc(LPVOID lParam)
 				}
 			}
 		}
-		
+		else
+		{
+			if (ERROR_BROKEN_PIPE == GetLastError())
+			{
+				_tprintf(TEXT("[ClientProc] Client disconnected.\n"));
+				break;
+			}
+			else
+			{
+				_tprintf(TEXT("[ClientProc] ReadFile failed, Error %ld.\n"),
+					GetLastError());
+				break;
+			}
+		}
 	}
 	FlushFileBuffers(hPipeClient);
 	DisconnectNamedPipe(hPipeClient);
@@ -138,14 +136,12 @@ int _tmain(VOID)
 						break;
 					}
 				}
-				
 				if (!isThereFlag)//то есть если такого юзера нет, то запускаем еще поток
 				{
 					CollectionAllThreadsIdClient[j] = atoi(UserName);
 					j++;
 					hThread = CreateThread(NULL, 0, ClientProc, UserName, 0, &ThreadId);
 				}
-				
 				_tprintf(TEXT("[SERVER] Thread for the client %s created.\n"), UserName);
 				if (hThread == NULL)
 				{

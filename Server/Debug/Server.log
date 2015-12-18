@@ -1,9 +1,16 @@
-ÿþ»ïB¿iudls attrde1 .8211. 5713::514. 
-    >1rPjoce t\"M\caH\mo\eeDksot\prpgoarmmni\g+c\+erlahctac\ah\teSvrreS\reev.rcvpxor"jo  noned2 ( uBli datgrtes()). 
-    >1iLkn: 
-        eSvrrev.xcrpjo-  >\\aM\coHemD\setkpop\orrgmaimgnc\++r\aeclah\thctaD\beguS\reev.rxee 
-    >1oDenB iudlni grPjoce t\"M\caH\mo\eeDksot\prpgoarmmni\g+c\+erlahctac\ah\teSvrreS\reev.rcvpxor"j( uBli datgrtes()).
-B
-iudls cuecdede.
-T
-mi elEpaes d000::0001.2
+ï»¿Build started 19.12.2015 0:11:24.
+     1>Project "D:\github\chat\Server\Server.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         D:\VisualSt\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\Server.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Server.cpp
+         Server.cpp
+     1>d:\github\chat\server\server.cpp(94): warning C4101: 'NamePipeForCheck' : unreferenced local variable
+     1>d:\github\chat\server\server.cpp(93): warning C4101: 'chechHandle' : unreferenced local variable
+       Link:
+         D:\VisualSt\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\github\chat\Debug\Server.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\github\chat\Debug\Server.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\github\chat\Debug\Server.lib" /MACHINE:X86 Debug\Server.obj
+         Debug\stdafx.obj
+         Server.vcxproj -> D:\github\chat\Debug\Server.exe
+     1>Done Building Project "D:\github\chat\Server\Server.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:04.00
