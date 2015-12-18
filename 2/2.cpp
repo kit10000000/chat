@@ -17,9 +17,15 @@
 #define ID_RICHEDITMESGET 6
 #define ID_BTN_SEND 7
 #define	I_MUST_READ_MY_PIPE 11101
+#define	STOP_READING 110011
 #include <forward_list>
 
 using namespace std;
+
+DWORD idReadClient;
+
+
+
 // Global Variables:
 char PipeNameSystem [] = "\\\\.\\pipe\\MyPipe";
 char NamePipeClientIn[100];
@@ -154,22 +160,36 @@ DWORD WINAPI ReadFunc(LPVOID lParam)
 	bool bSuccess;
 	CHARRANGE cr;
 	cr.cpMin = -1;
+	idReadClient = GetCurrentThreadId();
 	cr.cpMax = -1;
+	MSG msg;
 	while (true)
 	{
-		bSuccess = FALSE;
-		//чтение из канала в клиенте
-		if (ReadingPipe != INVALID_HANDLE_VALUE)
+		PeekMessage(&msg, NULL, 0, 0, PM_REMOVE);
+		if (msg.message != STOP_READING)
 		{
-			bSuccess = ReadFile(ReadingPipe, BufferForClientMessage, sizeof(BufferForClientMessage), &dwBytesRead, NULL);
+		}
+		else
+		{
+			if (connected)
+			{
+				bSuccess = FALSE;
+				//чтение из канала в клиенте
+				if (ReadingPipe != INVALID_HANDLE_VALUE)
+				{
+					bSuccess = ReadFile(ReadingPipe, BufferForClientMessage, sizeof(BufferForClientMessage), &dwBytesRead, NULL);
+				}
+
+				if (bSuccess)
+				{
+					SendMessage(hwndGetText, EM_EXSETSEL, 0, (LPARAM)&cr);
+					SendMessage(hwndGetText, EM_REPLACESEL, 0, (LPARAM)BufferForClientMessage);
+					SendMessage(hwndGetText, EM_REPLACESEL, 0, (LPARAM)"\n");
+				}
+			}
 		}
 		
-		if (bSuccess)
-		{
-			SendMessage(hwndGetText, EM_EXSETSEL, 0, (LPARAM)&cr);
-			SendMessage(hwndGetText, EM_REPLACESEL, 0, (LPARAM)BufferForClientMessage);
-			SendMessage(hwndGetText, EM_REPLACESEL, 0, (LPARAM)"\n");
-		}
+		
 	}
 }
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -191,6 +211,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			wmEvent = HIWORD(wParam);
 			COPYDATASTRUCT cd;
 			DWORD work;
+			WPARAM wparam;
+			COPYDATASTRUCT cddd;
 			// Parse the menu selections:
 			switch (wmId)
 			{
@@ -198,15 +220,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				//посмотреть условие connect
 				if (connected)
 				{
+					connected = FALSE;
 					ID = GetCurrentThreadId();
 					itoa(ID, threadId, 10);
 					WriteFile(g_hPipeSystem, threadId, strlen(UserName) + 1, &cbWritten, NULL);
-					connected = FALSE;
+					
 					//CloseHandle(g_hPipeChat);
 					g_hPipeSystem = INVALID_HANDLE_VALUE;
 					SetWindowText((HWND)lParam, "Connect");
 					break;
 				}
+
+				PostThreadMessage(idReadClient, UINT(STOP_READING), 0, (LPARAM)&cddd);
+
+
+
 				if (g_hPipeSystemDubl == INVALID_HANDLE_VALUE)//ТО ЕСТЬ ЕСЛИ МЫ В САМЫЙ ПЕРВЫЙ РАЗ ПОДКЛЮЧАЛИСЬ, СЮДА ЗАШЛИ
 					{
 						g_hPipeSystem = CreateFile(PipeNameSystem, GENERIC_ALL, 0, NULL, OPEN_EXISTING, 0, NULL);

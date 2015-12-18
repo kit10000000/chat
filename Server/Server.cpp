@@ -125,13 +125,16 @@ int _tmain(VOID)
 			{
 				for (int k = 0; k < j; k++)
 				{
-					if (CollectionAllThreadsIdClient[k] == atoi(UserName)){
+					if (CollectionAllThreadsIdClient[k] == atoi(UserName))
+					{
 						isThereFlag = TRUE;
 						for (int h = k; h < j-1; h++)
 						{
 							CollectionAllThreadsIdClient[h] = CollectionAllThreadsIdClient[h + 1];
+							CollectAllNamedPipes[h] = CollectAllNamedPipes[h + 1];
 						}
 						CollectionAllThreadsIdClient[j] = 0;
+						CollectAllNamedPipes[j] = 0;
 						break;
 					}
 				}
